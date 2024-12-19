@@ -69,7 +69,7 @@ class IcebergGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvid
         .storageDescriptor(
             StorageDescriptor.builder()
                 .location(table.getBasePath())
-                .columns(getSchemaExtractor().toColumns(TableFormat.ICEBERG, table.getReadSchema()))
+                .columns(getSchemaExtractor().toColumns(getTableFormat(), table.getReadSchema()))
                 .build())
         .build();
   }
@@ -91,7 +91,7 @@ class IcebergGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvid
                 .location(table.getBasePath())
                 .columns(
                     getSchemaExtractor()
-                        .toColumns(TableFormat.ICEBERG, table.getReadSchema(), catalogTable))
+                        .toColumns(getTableFormat(), table.getReadSchema(), catalogTable))
                 .build())
         .build();
   }
@@ -99,7 +99,7 @@ class IcebergGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvid
   @VisibleForTesting
   Map<String, String> getTableParameters(BaseTable icebergTable) {
     Map<String, String> parameters = new HashMap<>(icebergTable.properties());
-    parameters.put(TABLE_TYPE_PROP, TableFormat.ICEBERG);
+    parameters.put(TABLE_TYPE_PROP, getTableFormat());
     parameters.put(METADATA_LOCATION_PROP, getMetadataFileLocation(icebergTable));
     return parameters;
   }

@@ -41,7 +41,7 @@ abstract class GlueCatalogSyncRequestProvider {
 
   @Getter private final GlueSchemaExtractor schemaExtractor;
   @Getter private final Configuration configuration;
-  private final String tableFormat;
+  @Getter private final String tableFormat;
 
   GlueCatalogSyncRequestProvider(
       Configuration configuration, GlueSchemaExtractor schemaExtractor, String tableFormat) {
