@@ -18,15 +18,22 @@
  
 package org.apache.xtable.catalog.glue;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 
 import org.apache.hadoop.conf.Configuration;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.storage.TableFormat;
 
+import software.amazon.awssdk.services.glue.model.Column;
 import software.amazon.awssdk.services.glue.model.Table;
 import software.amazon.awssdk.services.glue.model.TableInput;
 
@@ -54,8 +61,36 @@ abstract class GlueCatalogSyncRequestProvider {
     switch (tableFormat) {
       case TableFormat.ICEBERG:
         return new IcebergGlueCatalogSyncRequestProvider(configuration, schemaExtractor);
+      case TableFormat.DELTA:
+        return new DeltaGlueCatalogSyncRequestProvider(configuration, schemaExtractor);
       default:
         throw new NotSupportedException("Unsupported table format: " + tableFormat);
     }
+  }
+
+  // TODO: handle complex / hidden / transformed partition keys
+  @VisibleForTesting
+  List<Column> getSchemaWithoutPartitionKeys(InternalTable table) {
+    List<String> partitionKeys =
+        table.getPartitioningFields().stream()
+            .map(field -> field.getSourceField().getName())
+            .collect(Collectors.toList());
+    return getSchemaExtractor().toColumns(tableFormat, table.getReadSchema()).stream()
+        .filter(c -> !partitionKeys.contains(c.name()))
+        .collect(Collectors.toList());
+  }
+
+  // TODO: handle complex / hidden / transformed partition keys
+  @VisibleForTesting
+  List<Column> getPartitionKeys(List<InternalPartitionField> partitioningFields) {
+    return partitioningFields.stream()
+        .map(
+            field -> {
+              String fieldName = field.getSourceField().getName();
+              String fieldType =
+                  schemaExtractor.toTypeString(field.getSourceField().getSchema(), tableFormat);
+              return Column.builder().name(fieldName).type(fieldType).build();
+            })
+        .collect(Collectors.toList());
   }
 }
