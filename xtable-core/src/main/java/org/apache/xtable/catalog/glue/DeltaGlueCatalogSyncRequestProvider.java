@@ -18,9 +18,6 @@
  
 package org.apache.xtable.catalog.glue;
 
-import static org.apache.iceberg.BaseMetastoreTableOperations.METADATA_LOCATION_PROP;
-import static org.apache.iceberg.BaseMetastoreTableOperations.PREVIOUS_METADATA_LOCATION_PROP;
-import static org.apache.iceberg.BaseMetastoreTableOperations.TABLE_TYPE_PROP;
 import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
 
 import java.util.HashMap;
@@ -28,87 +25,71 @@ import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
 
-import org.apache.iceberg.BaseTable;
-import org.apache.iceberg.hadoop.HadoopTables;
-
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
+import software.amazon.awssdk.services.glue.model.SerDeInfo;
 import software.amazon.awssdk.services.glue.model.StorageDescriptor;
 import software.amazon.awssdk.services.glue.model.Table;
 import software.amazon.awssdk.services.glue.model.TableInput;
 
-/** Iceberg specific table operations for Glue catalog sync */
-class IcebergGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider {
+/** Delta specific table operations for Glue catalog sync */
+class DeltaGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider {
 
-  private final HadoopTables hadoopTables;
-
-  IcebergGlueCatalogSyncRequestProvider(
+  DeltaGlueCatalogSyncRequestProvider(
       Configuration configuration, GlueSchemaExtractor schemaExtractor) {
-    super(configuration, schemaExtractor, TableFormat.ICEBERG);
-    this.hadoopTables = new HadoopTables(configuration);
-  }
-
-  @VisibleForTesting
-  IcebergGlueCatalogSyncRequestProvider(
-      Configuration configuration, GlueSchemaExtractor schemaExtractor, HadoopTables hadoopTables) {
-    super(configuration, schemaExtractor, TableFormat.ICEBERG);
-    this.hadoopTables = hadoopTables;
+    super(configuration, schemaExtractor, TableFormat.DELTA);
   }
 
   @Override
   TableInput getCreateTableInput(InternalTable table, CatalogTableIdentifier tableIdentifier) {
-    BaseTable fsTable = loadTableFromFs(table.getBasePath());
     return TableInput.builder()
         .name(tableIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
-        .parameters(getTableParameters(fsTable))
+        .parameters(getTableParameters())
         .storageDescriptor(
             StorageDescriptor.builder()
+                .columns(getSchemaWithoutPartitionKeys(table))
                 .location(table.getBasePath())
-                .columns(getSchemaExtractor().toColumns(TableFormat.ICEBERG, table.getReadSchema()))
+                .serdeInfo(SerDeInfo.builder().parameters(getSerDeParameters(table)).build())
                 .build())
+        .partitionKeys(getPartitionKeys(table.getPartitioningFields()))
         .build();
   }
 
   @Override
   TableInput getUpdateTableInput(
       InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
-    BaseTable icebergTable = loadTableFromFs(table.getBasePath());
     Map<String, String> parameters = new HashMap<>(catalogTable.parameters());
-    parameters.put(PREVIOUS_METADATA_LOCATION_PROP, parameters.get(METADATA_LOCATION_PROP));
-    parameters.put(METADATA_LOCATION_PROP, getMetadataFileLocation(icebergTable));
-    parameters.putAll(icebergTable.properties());
     return TableInput.builder()
         .name(tableIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
         .parameters(parameters)
         .storageDescriptor(
-            StorageDescriptor.builder()
-                .location(table.getBasePath())
-                .columns(
-                    getSchemaExtractor()
-                        .toColumns(TableFormat.ICEBERG, table.getReadSchema(), catalogTable))
+            catalogTable.storageDescriptor().toBuilder()
+                .columns(getSchemaWithoutPartitionKeys(table))
                 .build())
+        .partitionKeys(getPartitionKeys(table.getPartitioningFields()))
         .build();
   }
 
   @VisibleForTesting
-  Map<String, String> getTableParameters(BaseTable icebergTable) {
-    Map<String, String> parameters = new HashMap<>(icebergTable.properties());
-    parameters.put(TABLE_TYPE_PROP, TableFormat.ICEBERG);
-    parameters.put(METADATA_LOCATION_PROP, getMetadataFileLocation(icebergTable));
+  Map<String, String> getTableParameters() {
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("table_type", "delta");
+    parameters.put("spark.sql.sources.provider", "delta");
+    parameters.put("EXTERNAL", "TRUE");
     return parameters;
   }
 
-  private BaseTable loadTableFromFs(String tableBasePath) {
-    return (BaseTable) hadoopTables.load(tableBasePath);
-  }
-
-  private String getMetadataFileLocation(BaseTable table) {
-    return table.operations().current().metadataFileLocation();
+  @VisibleForTesting
+  Map<String, String> getSerDeParameters(InternalTable table) {
+    Map<String, String> parameters = new HashMap<>();
+    parameters.put("serialization.format", "1");
+    parameters.put("path", table.getBasePath());
+    return parameters;
   }
 }

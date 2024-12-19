@@ -33,6 +33,7 @@ public class TableFormatUtils {
       case TableFormat.ICEBERG:
         return getIcebergDataLocation(tableLocation, properties);
       case TableFormat.HUDI:
+      case TableFormat.DELTA:
         return tableLocation;
       default:
         throw new NotSupportedException("Unsupported table format: " + tableFormat);
