@@ -216,6 +216,11 @@ public class DeltaSchemaExtractor {
         StructType structType = (StructType) dataType;
         fields =
             Arrays.stream(structType.fields())
+                .filter(
+                    field ->
+                        !field
+                            .metadata()
+                            .contains(DeltaPartitionExtractor.DELTA_GENERATION_EXPRESSION))
                 .map(
                     field -> {
                       Integer fieldId =
