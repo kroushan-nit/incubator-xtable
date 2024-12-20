@@ -22,6 +22,7 @@ import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -31,6 +32,7 @@ import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
+import software.amazon.awssdk.services.glue.model.Column;
 import software.amazon.awssdk.services.glue.model.SerDeInfo;
 import software.amazon.awssdk.services.glue.model.StorageDescriptor;
 import software.amazon.awssdk.services.glue.model.Table;
@@ -46,17 +48,21 @@ class DeltaGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider
 
   @Override
   TableInput getCreateTableInput(InternalTable table, CatalogTableIdentifier tableIdentifier) {
+    Map<String, Column> columnsMap =
+        getSchemaExtractor().toColumns(getTableFormat(), table.getReadSchema()).stream()
+            .collect(Collectors.toMap(Column::name, c -> c));
+
     return TableInput.builder()
         .name(tableIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
         .parameters(getTableParameters())
         .storageDescriptor(
             StorageDescriptor.builder()
-                .columns(getSchemaWithoutPartitionKeys(table))
+                .columns(getNonPartitionColumns(table, columnsMap))
                 .location(table.getBasePath())
                 .serdeInfo(SerDeInfo.builder().parameters(getSerDeParameters(table)).build())
                 .build())
-        .partitionKeys(getPartitionKeys(table.getPartitioningFields()))
+        .partitionKeys(getPartitionColumns(table, columnsMap))
         .build();
   }
 
@@ -64,15 +70,18 @@ class DeltaGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider
   TableInput getUpdateTableInput(
       InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
     Map<String, String> parameters = new HashMap<>(catalogTable.parameters());
+    Map<String, Column> columnsMap =
+        getSchemaExtractor().toColumns(getTableFormat(), table.getReadSchema()).stream()
+            .collect(Collectors.toMap(Column::name, c -> c));
     return TableInput.builder()
         .name(tableIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
         .parameters(parameters)
         .storageDescriptor(
             catalogTable.storageDescriptor().toBuilder()
-                .columns(getSchemaWithoutPartitionKeys(table))
+                .columns(getNonPartitionColumns(table, columnsMap))
                 .build())
-        .partitionKeys(getPartitionKeys(table.getPartitioningFields()))
+        .partitionKeys(getPartitionColumns(table, columnsMap))
         .build();
   }
 

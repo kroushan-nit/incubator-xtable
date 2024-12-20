@@ -18,7 +18,9 @@
  
 package org.apache.xtable.catalog.glue;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.Getter;
@@ -30,7 +32,6 @@ import com.google.common.annotations.VisibleForTesting;
 import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
-import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.storage.TableFormat;
 
 import software.amazon.awssdk.services.glue.model.Column;
@@ -68,29 +69,35 @@ abstract class GlueCatalogSyncRequestProvider {
     }
   }
 
-  // TODO: handle complex / hidden / transformed partition keys
   @VisibleForTesting
-  List<Column> getSchemaWithoutPartitionKeys(InternalTable table) {
-    List<String> partitionKeys =
-        table.getPartitioningFields().stream()
-            .map(field -> field.getSourceField().getName())
-            .collect(Collectors.toList());
-    return getSchemaExtractor().toColumns(tableFormat, table.getReadSchema()).stream()
+  List<Column> getNonPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
+    List<String> partitionKeys = getPartitionKeys(table);
+    return columnsMap.values().stream()
         .filter(c -> !partitionKeys.contains(c.name()))
         .collect(Collectors.toList());
   }
 
-  // TODO: handle complex / hidden / transformed partition keys
   @VisibleForTesting
-  List<Column> getPartitionKeys(List<InternalPartitionField> partitioningFields) {
-    return partitioningFields.stream()
+  List<Column> getPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
+    return getPartitionKeys(table).stream()
         .map(
-            field -> {
-              String fieldName = field.getSourceField().getName();
-              String fieldType =
-                  schemaExtractor.toTypeString(field.getSourceField().getSchema(), tableFormat);
-              return Column.builder().name(fieldName).type(fieldType).build();
-            })
+            fieldName ->
+                Column.builder().name(fieldName).type(columnsMap.get(fieldName).type()).build())
         .collect(Collectors.toList());
+  }
+
+  List<String> getPartitionKeys(InternalTable table) {
+    List<String> partitionKeys = new ArrayList<>();
+    table
+        .getPartitioningFields()
+        .forEach(
+            field -> {
+              if (!field.getPartitionFieldNames().isEmpty()) {
+                partitionKeys.addAll(field.getPartitionFieldNames());
+              } else {
+                partitionKeys.add(field.getSourceField().getName());
+              }
+            });
+    return partitionKeys;
   }
 }
