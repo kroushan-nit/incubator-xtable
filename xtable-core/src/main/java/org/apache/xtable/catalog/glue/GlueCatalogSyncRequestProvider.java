@@ -44,6 +44,11 @@ abstract class GlueCatalogSyncRequestProvider {
   @Getter private final Configuration configuration;
   @Getter private final String tableFormat;
 
+  protected static final String PROP_SPARK_SQL_SOURCES_PROVIDER = "spark.sql.sources.provider";
+  protected static final String PROP_PATH = "path";
+  protected static final String PROP_SERIALIZATION_FORMAT = "serialization.format";
+  protected static final String PROP_EXTERNAL = "EXTERNAL";
+
   GlueCatalogSyncRequestProvider(
       Configuration configuration, GlueSchemaExtractor schemaExtractor, String tableFormat) {
     this.configuration = configuration;
@@ -70,7 +75,7 @@ abstract class GlueCatalogSyncRequestProvider {
   }
 
   @VisibleForTesting
-  List<Column> getNonPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
+  static List<Column> getNonPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
     List<String> partitionKeys = getPartitionKeys(table);
     return columnsMap.values().stream()
         .filter(c -> !partitionKeys.contains(c.name()))
@@ -78,7 +83,7 @@ abstract class GlueCatalogSyncRequestProvider {
   }
 
   @VisibleForTesting
-  List<Column> getPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
+  static List<Column> getPartitionColumns(InternalTable table, Map<String, Column> columnsMap) {
     return getPartitionKeys(table).stream()
         .map(
             fieldName ->
@@ -86,7 +91,8 @@ abstract class GlueCatalogSyncRequestProvider {
         .collect(Collectors.toList());
   }
 
-  List<String> getPartitionKeys(InternalTable table) {
+  @VisibleForTesting
+  static List<String> getPartitionKeys(InternalTable table) {
     List<String> partitionKeys = new ArrayList<>();
     table
         .getPartitioningFields()

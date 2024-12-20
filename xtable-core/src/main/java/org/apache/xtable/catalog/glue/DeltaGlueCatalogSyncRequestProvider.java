@@ -18,9 +18,11 @@
  
 package org.apache.xtable.catalog.glue;
 
+import static org.apache.iceberg.BaseMetastoreTableOperations.TABLE_TYPE_PROP;
 import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -71,7 +73,9 @@ class DeltaGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider
       InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
     Map<String, String> parameters = new HashMap<>(catalogTable.parameters());
     Map<String, Column> columnsMap =
-        getSchemaExtractor().toColumns(getTableFormat(), table.getReadSchema()).stream()
+        getSchemaExtractor()
+            .toColumns(getTableFormat(), table.getReadSchema(), catalogTable)
+            .stream()
             .collect(Collectors.toMap(Column::name, c -> c));
     return TableInput.builder()
         .name(tableIdentifier.getTableName())
@@ -88,17 +92,17 @@ class DeltaGlueCatalogSyncRequestProvider extends GlueCatalogSyncRequestProvider
   @VisibleForTesting
   Map<String, String> getTableParameters() {
     Map<String, String> parameters = new HashMap<>();
-    parameters.put("table_type", "delta");
-    parameters.put("spark.sql.sources.provider", "delta");
-    parameters.put("EXTERNAL", "TRUE");
+    parameters.put(TABLE_TYPE_PROP, getTableFormat());
+    parameters.put(PROP_SPARK_SQL_SOURCES_PROVIDER, getTableFormat().toLowerCase(Locale.ENGLISH));
+    parameters.put(PROP_EXTERNAL, "TRUE");
     return parameters;
   }
 
   @VisibleForTesting
   Map<String, String> getSerDeParameters(InternalTable table) {
     Map<String, String> parameters = new HashMap<>();
-    parameters.put("serialization.format", "1");
-    parameters.put("path", table.getBasePath());
+    parameters.put(PROP_SERIALIZATION_FORMAT, "1");
+    parameters.put(PROP_PATH, table.getBasePath());
     return parameters;
   }
 }

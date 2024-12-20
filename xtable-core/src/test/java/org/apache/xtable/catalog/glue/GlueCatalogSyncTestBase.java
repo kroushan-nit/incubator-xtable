@@ -63,12 +63,21 @@ public class GlueCatalogSyncTestBase {
           .basePath(TEST_BASE_PATH)
           .tableFormat(TableFormat.ICEBERG)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
+          .partitioningFields(Collections.emptyList())
           .build();
   protected static final InternalTable TEST_HUDI_INTERNAL_TABLE =
       InternalTable.builder()
           .basePath(TEST_BASE_PATH)
           .tableFormat(TableFormat.HUDI)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
+          .partitioningFields(Collections.emptyList())
+          .build();
+  protected static final InternalTable TEST_DELTA_INTERNAL_TABLE =
+      InternalTable.builder()
+          .basePath(TEST_BASE_PATH)
+          .tableFormat(TableFormat.DELTA)
+          .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
+          .partitioningFields(Collections.emptyList())
           .build();
   protected static final CatalogTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
       CatalogTableIdentifier.builder()
