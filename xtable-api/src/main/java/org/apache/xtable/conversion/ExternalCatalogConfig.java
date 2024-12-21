@@ -25,18 +25,41 @@ import lombok.Builder;
 import lombok.NonNull;
 import lombok.Value;
 
-/** Defines the configuration for an external catalog. */
+/**
+ * Defines the configuration for an external catalog, user needs to populate at-least one of {@link
+ * ExternalCatalogConfig#catalogType} or {@link ExternalCatalogConfig#catalogSyncClientImpl}
+ */
 @Value
 @Builder
-public class ExternalCatalogConfig implements CatalogConfig {
-  /** The name of the catalog, it also acts as a unique identifier for each catalog */
-  @NonNull String catalogName;
+public class ExternalCatalogConfig {
+  /**
+   * A user-defined unique identifier for the catalog, allows user to sync table to multiple
+   * catalogs of the same name/type eg: HMS catalog with url1, HMS catalog with url2
+   */
+  @NonNull String catalogId;
 
-  /** The implementation class path for the catalog */
-  @NonNull String catalogImpl;
+  /**
+   * The type of the catalog. If the catalogType implementation exists in XTable, the implementation
+   * class will be inferred.
+   */
+  String catalogType;
+
+  /**
+   * (Optional) A fully qualified class name that implements the interface for {@link
+   * org.apache.xtable.spi.sync.CatalogSyncClient}, it can be used if the implementation for
+   * catalogType doesn't exist in XTable.
+   */
+  String catalogSyncClientImpl;
+
+  /**
+   * (Optional) A fully qualified class name that implements the interface for {@link
+   * org.apache.xtable.spi.extractor.CatalogConversionSource} it can be used if the implementation
+   * for catalogType doesn't exist in XTable.
+   */
+  String catalogConversionSourceImpl;
 
   /**
    * The properties for each catalog, used for providing any custom behaviour during catalog sync
    */
-  @NonNull @Builder.Default Map<String, String> catalogOptions = Collections.emptyMap();
+  @NonNull @Builder.Default Map<String, String> catalogProperties = Collections.emptyMap();
 }
