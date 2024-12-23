@@ -22,6 +22,7 @@ import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIden
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Optional;
 
 import lombok.extern.log4j.Log4j2;
 
@@ -37,6 +38,7 @@ import org.apache.thrift.TException;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
+import org.apache.xtable.catalog.PartitionSyncTool;
 import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.InternalTable;
@@ -54,9 +56,12 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   private final Configuration configuration;
   private final IMetaStoreClient metaStoreClient;
   private final CatalogTableBuilder<Table, Table> tableBuilder;
+  private final Optional<PartitionSyncTool> partitionSyncTool;
 
   public HMSCatalogSyncClient(
-      ExternalCatalogConfig catalogConfig, Configuration configuration, String tableFormat) {
+      ExternalCatalogConfig catalogConfig,
+      Configuration configuration,
+      String tableFormat) {
     this.catalogConfig = catalogConfig;
     this.hmsCatalogConfig = HMSCatalogConfig.of(catalogConfig.getCatalogProperties());
     this.configuration = configuration;
@@ -66,7 +71,8 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
       throw new CatalogSyncException("HiveMetastoreClient could not be created", e);
     }
     this.tableBuilder =
-        HMSCatalogTableBuilderFactory.getTableBuilder(tableFormat, this.configuration);
+        HMSCatalogTableBuilderFactory.getTableBuilder(tableFormat, hmsCatalogConfig, this.configuration);
+    this.partitionSyncTool = HMSPartitionSyncToolFactory.getPartitionSyncTool(tableFormat, hmsCatalogConfig, metaStoreClient, configuration);
   }
 
   @VisibleForTesting
@@ -75,12 +81,14 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
       HMSCatalogConfig hmsCatalogConfig,
       Configuration configuration,
       IMetaStoreClient metaStoreClient,
-      CatalogTableBuilder tableBuilder) {
+      CatalogTableBuilder tableBuilder,
+      Optional<PartitionSyncTool> partitionSyncTool) {
     this.catalogConfig = catalogConfig;
     this.hmsCatalogConfig = hmsCatalogConfig;
     this.configuration = configuration;
     this.metaStoreClient = metaStoreClient;
     this.tableBuilder = tableBuilder;
+    this.partitionSyncTool = partitionSyncTool;
   }
 
   @Override
@@ -145,6 +153,9 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
     } catch (TException e) {
       throw new CatalogSyncException("Failed to create table: " + tableIdentifier.getId(), e);
     }
+
+    // sync partitions
+    partitionSyncTool.ifPresent(tool -> tool.syncPartitions(table, tableIdentifier));
   }
 
   @Override
@@ -158,6 +169,9 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
     } catch (TException e) {
       throw new CatalogSyncException("Failed to refresh table: " + tableIdentifier.getId(), e);
     }
+
+    // sync partitions
+    partitionSyncTool.ifPresent(tool -> tool.syncPartitions(table, tableIdentifier));
   }
 
   @Override
