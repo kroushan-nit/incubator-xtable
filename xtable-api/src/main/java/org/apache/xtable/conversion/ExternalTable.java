@@ -42,6 +42,7 @@ class ExternalTable {
   protected final String[] namespace;
   /** The configuration for interacting with the catalog that manages this table */
   protected final CatalogConfig catalogConfig;
+
   /** Optional, additional properties that can be used to define interactions with the table */
   protected final Properties additionalProperties;
 
