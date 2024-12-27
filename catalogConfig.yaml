@@ -1,0 +1,25 @@
+sourceCatalog:
+  catalogId: "hms-source"
+  catalogConversionSourceImpl: "org.apache.xtable.catalog.hms.HMSCatalogConversionSource"
+  catalogSyncClientImpl: "org.apache.xtable.catalog.hms.HMSCatalogSyncClient"
+  catalogProperties:
+    externalCatalog.hms.serverUrl: "thrift://localhost:9083"
+targetCatalogs:
+  - catalogId: "hms-target"
+    catalogSyncClientImpl: "org.apache.xtable.catalog.hms.HMSCatalogSyncClient"
+    catalogProperties:
+      externalCatalog.hms.serverUrl: "thrift://localhost:9083"
+datasets:
+  - sourceCatalogTableIdentifier:
+      storageIdentifier:
+        tableBasePath: file:///Users/vamsi/pg/sample_iceberg_tables/hudi_hms_sync/table_with_simple_int_partition4
+        tableDataPath: file:///Users/vamsi/pg/sample_iceberg_tables/hudi_hms_sync/table_with_simple_int_partition4/data
+        tableName: trips_table
+        partitionSpec: id:VALUE
+        tableFormat: "ICEBERG"
+    targetCatalogTableIdentifiers:
+      - catalogId: "hms-target"
+        tableFormat: "HUDI"
+        catalogTableIdentifier:
+          databaseName: "target_db_1"
+          tableName: "target_tb_9"

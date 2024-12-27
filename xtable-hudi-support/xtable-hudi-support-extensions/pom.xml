@@ -56,7 +56,7 @@
         <dependency>
             <groupId>org.apache.hudi</groupId>
             <artifactId>hudi-sync-common</artifactId>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.hadoop</groupId>
