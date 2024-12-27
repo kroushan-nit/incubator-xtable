@@ -28,16 +28,23 @@ class TestHierarchicalTableIdentifier {
   @Test
   void testToString() {
     HierarchicalTableIdentifier catalogTableIdentifier =
-        new HierarchicalTableIdentifier("catalogName.databaseName.tableName");
+        ThreePartHierarchicalTableIdentifier.fromDotSeparatedIdentifier(
+            "catalogName.databaseName.tableName");
     assertEquals("catalogName.databaseName.tableName", catalogTableIdentifier.getId());
   }
 
   @Test
   void testConstructorForHierarchicalTableIdentifier() {
     Assertions.assertDoesNotThrow(
-        () -> new HierarchicalTableIdentifier("catalogName.databaseName.tableName"));
-    Assertions.assertDoesNotThrow(() -> new HierarchicalTableIdentifier("databaseName.tableName"));
+        () ->
+            ThreePartHierarchicalTableIdentifier.fromDotSeparatedIdentifier(
+                "catalogName.databaseName.tableName"));
+    Assertions.assertDoesNotThrow(
+        () ->
+            ThreePartHierarchicalTableIdentifier.fromDotSeparatedIdentifier(
+                "databaseName.tableName"));
     Assertions.assertThrows(
-        IllegalArgumentException.class, () -> new HierarchicalTableIdentifier("tableName"));
+        IllegalArgumentException.class,
+        () -> ThreePartHierarchicalTableIdentifier.fromDotSeparatedIdentifier("tableName"));
   }
 }

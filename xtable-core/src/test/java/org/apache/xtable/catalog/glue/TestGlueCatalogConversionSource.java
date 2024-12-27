@@ -38,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.apache.xtable.conversion.SourceTable;
 import org.apache.xtable.exception.CatalogSyncException;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
 import software.amazon.awssdk.services.glue.GlueClient;
@@ -59,8 +59,8 @@ public class TestGlueCatalogConversionSource {
   private static final String GLUE_TABLE = "glue_tbl";
   private static final String TABLE_BASE_PATH = "/var/data/table";
   private static final String GLUE_CATALOG_ID = "aws-account-id";
-  private static final CatalogTableIdentifier tableIdentifier =
-      CatalogTableIdentifier.builder().databaseName(GLUE_DB).tableName(GLUE_TABLE).build();
+  private static final ThreePartHierarchicalTableIdentifier tableIdentifier =
+      new ThreePartHierarchicalTableIdentifier(GLUE_DB, GLUE_TABLE);
   private static final GetTableRequest getTableRequest =
       GetTableRequest.builder()
           .catalogId(GLUE_CATALOG_ID)

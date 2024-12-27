@@ -46,7 +46,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.exception.CatalogSyncException;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 
 import software.amazon.awssdk.services.glue.model.CreateDatabaseRequest;
 import software.amazon.awssdk.services.glue.model.CreateDatabaseResponse;
@@ -97,8 +97,7 @@ public class TestGlueCatalogSyncClient extends GlueCatalogSyncTestBase {
       when(mockGlueClient.getDatabase(dbRequest))
           .thenThrow(EntityNotFoundException.builder().message("db not found").build());
     }
-    boolean output =
-        glueCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName());
+    boolean output = glueCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER);
     if (isDbPresent) {
       assertTrue(output);
     } else {
@@ -115,8 +114,7 @@ public class TestGlueCatalogSyncClient extends GlueCatalogSyncTestBase {
     CatalogSyncException exception =
         assertThrows(
             CatalogSyncException.class,
-            () ->
-                glueCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName()));
+            () -> glueCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER));
     assertEquals(
         String.format("Failed to get database: %s", TEST_GLUE_DATABASE), exception.getMessage());
     verify(mockGlueClient, times(1)).getDatabase(dbRequest);
@@ -185,16 +183,14 @@ public class TestGlueCatalogSyncClient extends GlueCatalogSyncTestBase {
       CatalogSyncException exception =
           assertThrows(
               CatalogSyncException.class,
-              () ->
-                  glueCatalogSyncClient.createDatabase(
-                      TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName()));
+              () -> glueCatalogSyncClient.createDatabase(TEST_CATALOG_TABLE_IDENTIFIER));
       assertEquals(
           String.format("Failed to create database: %s", TEST_GLUE_DATABASE),
           exception.getMessage());
     } else {
       when(mockGlueClient.createDatabase(dbRequest))
           .thenReturn(CreateDatabaseResponse.builder().build());
-      glueCatalogSyncClient.createDatabase(TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName());
+      glueCatalogSyncClient.createDatabase(TEST_CATALOG_TABLE_IDENTIFIER);
     }
     verify(mockGlueClient, times(1)).createDatabase(dbRequest);
   }
@@ -364,11 +360,9 @@ public class TestGlueCatalogSyncClient extends GlueCatalogSyncTestBase {
           TEST_CATALOG_TABLE_IDENTIFIER.getTableName()
               + "_temp"
               + ZonedDateTime.now().toEpochSecond();
-      CatalogTableIdentifier tempTableIdentifier =
-          CatalogTableIdentifier.builder()
-              .databaseName(TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName())
-              .tableName(tempTableName)
-              .build();
+      ThreePartHierarchicalTableIdentifier tempTableIdentifier =
+          new ThreePartHierarchicalTableIdentifier(
+              TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName(), tempTableName);
       TableInput tableInput = TableInput.builder().name(TEST_GLUE_TABLE).build();
       TableInput tempTableInput = TableInput.builder().name(tempTableName).build();
       CreateTableRequest origCreateTableRequest =

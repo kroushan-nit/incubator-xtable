@@ -21,6 +21,7 @@ package org.apache.xtable.catalog.glue.table;
 import static org.apache.iceberg.BaseMetastoreTableOperations.METADATA_LOCATION_PROP;
 import static org.apache.iceberg.BaseMetastoreTableOperations.PREVIOUS_METADATA_LOCATION_PROP;
 import static org.apache.iceberg.BaseMetastoreTableOperations.TABLE_TYPE_PROP;
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
 import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
 
 import java.util.HashMap;
@@ -37,6 +38,7 @@ import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.catalog.glue.GlueSchemaExtractor;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
 import software.amazon.awssdk.services.glue.model.StorageDescriptor;
@@ -64,9 +66,10 @@ public class IcebergGlueCatalogTableBuilder implements CatalogTableBuilder<Table
   @Override
   public TableInput getCreateTableRequest(
       InternalTable table, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     BaseTable fsTable = loadTableFromFs(table.getBasePath());
     return TableInput.builder()
-        .name(tableIdentifier.getTableName())
+        .name(tblIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
         .parameters(getTableParameters(fsTable))
         .storageDescriptor(
@@ -80,6 +83,7 @@ public class IcebergGlueCatalogTableBuilder implements CatalogTableBuilder<Table
   @Override
   public TableInput getUpdateTableRequest(
       InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     BaseTable icebergTable = loadTableFromFs(table.getBasePath());
     Map<String, String> parameters = new HashMap<>(catalogTable.parameters());
     parameters.put(PREVIOUS_METADATA_LOCATION_PROP, parameters.get(METADATA_LOCATION_PROP));
@@ -87,7 +91,7 @@ public class IcebergGlueCatalogTableBuilder implements CatalogTableBuilder<Table
     parameters.putAll(icebergTable.properties());
 
     return TableInput.builder()
-        .name(tableIdentifier.getTableName())
+        .name(tblIdentifier.getTableName())
         .tableType(GLUE_EXTERNAL_TABLE_TYPE)
         .parameters(parameters)
         .storageDescriptor(
