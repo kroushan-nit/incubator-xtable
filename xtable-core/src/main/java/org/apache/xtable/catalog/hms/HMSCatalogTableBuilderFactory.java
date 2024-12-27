@@ -18,6 +18,8 @@
  
 package org.apache.xtable.catalog.hms;
 
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
+
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -32,6 +34,7 @@ import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.catalog.hms.table.IcebergHMSCatalogTableBuilder;
 import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
 public class HMSCatalogTableBuilderFactory {
@@ -47,9 +50,10 @@ public class HMSCatalogTableBuilderFactory {
   }
 
   public static Table newHmsTable(
-      CatalogTableIdentifier tableIdentifier,
+      CatalogTableIdentifier tblIdentifier,
       StorageDescriptor storageDescriptor,
       Map<String, String> params) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     try {
       Table newTb = new Table();
       newTb.setDbName(tableIdentifier.getDatabaseName());

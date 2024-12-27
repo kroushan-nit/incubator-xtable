@@ -18,6 +18,8 @@
  
 package org.apache.xtable.catalog.hms;
 
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
+
 import java.time.ZonedDateTime;
 import java.util.Collections;
 
@@ -39,6 +41,8 @@ import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.spi.sync.CatalogSyncClient;
 
 @Log4j2
@@ -93,7 +97,8 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public boolean hasDatabase(String databaseName) {
+  public boolean hasDatabase(CatalogTableIdentifier tableIdentifier) {
+    String databaseName = castToHierarchicalTableIdentifier(tableIdentifier).getDatabaseName();
     try {
       return metaStoreClient.getDatabase(databaseName) != null;
     } catch (NoSuchObjectException e) {
@@ -104,7 +109,8 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public void createDatabase(String databaseName) {
+  public void createDatabase(CatalogTableIdentifier tableIdentifier) {
+    String databaseName = castToHierarchicalTableIdentifier(tableIdentifier).getDatabaseName();
     try {
       Database database =
           new Database(
@@ -119,14 +125,15 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public Table getTable(CatalogTableIdentifier tableIdentifier) {
+  public Table getTable(CatalogTableIdentifier tblIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     try {
       return metaStoreClient.getTable(
           tableIdentifier.getDatabaseName(), tableIdentifier.getTableName());
     } catch (NoSuchObjectException e) {
       return null;
     } catch (TException e) {
-      throw new CatalogSyncException("Failed to get table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to get table: " + tableIdentifier.getId(), e);
     }
   }
 
@@ -136,19 +143,20 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
     try {
       metaStoreClient.createTable(hmsTable);
     } catch (TException e) {
-      throw new CatalogSyncException("Failed to create table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to create table: " + tableIdentifier.getId(), e);
     }
   }
 
   @Override
   public void refreshTable(
-      InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
+      InternalTable table, Table catalogTable, CatalogTableIdentifier tblIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     catalogTable = tableBuilder.getUpdateTableRequest(table, catalogTable, tableIdentifier);
     try {
       metaStoreClient.alter_table(
           tableIdentifier.getDatabaseName(), tableIdentifier.getTableName(), catalogTable);
     } catch (TException e) {
-      throw new CatalogSyncException("Failed to refresh table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to refresh table: " + tableIdentifier.getId(), e);
     }
   }
 
@@ -161,11 +169,12 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public void dropTable(InternalTable table, CatalogTableIdentifier tableIdentifier) {
+  public void dropTable(InternalTable table, CatalogTableIdentifier tblIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     try {
       metaStoreClient.dropTable(tableIdentifier.getDatabaseName(), tableIdentifier.getTableName());
     } catch (TException e) {
-      throw new CatalogSyncException("Failed to drop table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to drop table: " + tableIdentifier.getId(), e);
     }
   }
 
@@ -175,14 +184,12 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
    * there are any issues
    */
   private void validateTempTableCreation(
-      InternalTable table, CatalogTableIdentifier tableIdentifier) {
+      InternalTable table, CatalogTableIdentifier tblIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     String tempTableName =
         tableIdentifier.getTableName() + TEMP_SUFFIX + ZonedDateTime.now().toEpochSecond();
-    CatalogTableIdentifier tempTableIdentifier =
-        CatalogTableIdentifier.builder()
-            .tableName(tempTableName)
-            .databaseName(tableIdentifier.getDatabaseName())
-            .build();
+    ThreePartHierarchicalTableIdentifier tempTableIdentifier =
+        new ThreePartHierarchicalTableIdentifier(tableIdentifier.getDatabaseName(), tempTableName);
     createTable(table, tempTableIdentifier);
     dropTable(table, tempTableIdentifier);
   }

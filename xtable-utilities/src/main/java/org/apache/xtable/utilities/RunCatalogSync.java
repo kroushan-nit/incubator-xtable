@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,6 +59,7 @@ import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.conversion.SourceTable;
 import org.apache.xtable.conversion.TargetCatalogConfig;
 import org.apache.xtable.conversion.TargetTable;
+import org.apache.xtable.hudi.HudiSourceConfig;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
@@ -139,15 +141,17 @@ public class RunCatalogSync {
         datasetConfig.getTargetCatalogs().stream()
             .map(RunCatalogSync::populateCatalogImplementations)
             .collect(Collectors.toMap(ExternalCatalogConfig::getCatalogId, Function.identity()));
-    CatalogConversionSource catalogConversionSource =
-        CatalogConversionFactory.createCatalogConversionSource(
-            datasetConfig.getSourceCatalog(), hadoopConf);
     ConversionController conversionController = new ConversionController(hadoopConf);
     for (DatasetConfig.Dataset dataset : datasetConfig.getDatasets()) {
       SourceTable sourceTable = null;
       if (dataset.getSourceCatalogTableIdentifier().getStorageIdentifier() != null) {
         StorageIdentifier storageIdentifier =
             dataset.getSourceCatalogTableIdentifier().getStorageIdentifier();
+        Properties sourceProperties = new Properties();
+        if (storageIdentifier.getPartitionSpec() != null) {
+          sourceProperties.put(
+              HudiSourceConfig.PARTITION_FIELD_SPEC_CONFIG, storageIdentifier.getPartitionSpec());
+        }
         sourceTable =
             SourceTable.builder()
                 .name(storageIdentifier.getTableName())
@@ -158,8 +162,12 @@ public class RunCatalogSync {
                         : storageIdentifier.getNamespace().split("\\."))
                 .dataPath(storageIdentifier.getTableDataPath())
                 .formatName(storageIdentifier.getTableFormat())
+                .additionalProperties(sourceProperties)
                 .build();
       } else {
+        CatalogConversionSource catalogConversionSource =
+            CatalogConversionFactory.createCatalogConversionSource(
+                datasetConfig.getSourceCatalog(), hadoopConf);
         sourceTable =
             catalogConversionSource.getSourceTable(
                 getCatalogTableIdentifier(
@@ -175,6 +183,7 @@ public class RunCatalogSync {
                 .basePath(sourceTable.getBasePath())
                 .namespace(sourceTable.getNamespace())
                 .formatName(targetCatalogTableIdentifier.getTableFormat())
+                .additionalProperties(sourceTable.getAdditionalProperties())
                 .build();
         targetTables.add(targetTable);
         if (!targetCatalogs.containsKey(targetTable)) {
