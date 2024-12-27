@@ -18,8 +18,14 @@
  
 package org.apache.xtable.catalog.glue;
 
-import com.google.common.annotations.VisibleForTesting;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.hadoop.conf.Configuration;
+
+import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.catalog.glue.table.DeltaGlueCatalogTableBuilder;
@@ -31,11 +37,6 @@ import org.apache.xtable.model.storage.TableFormat;
 import software.amazon.awssdk.services.glue.model.Column;
 import software.amazon.awssdk.services.glue.model.Table;
 import software.amazon.awssdk.services.glue.model.TableInput;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 public class GlueCatalogTableBuilderFactory {
 
