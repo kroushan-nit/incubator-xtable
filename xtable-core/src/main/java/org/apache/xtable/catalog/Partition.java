@@ -15,23 +15,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.apache.xtable.exception;
 
-import org.apache.xtable.model.exception.ErrorCode;
-import org.apache.xtable.model.exception.InternalException;
+package org.apache.xtable.catalog;
 
-public class CatalogSyncException extends InternalException {
+import java.util.List;
 
-  public CatalogSyncException(ErrorCode errorCode, String message, Throwable e) {
-    super(errorCode, message, e);
-  }
+import lombok.Getter;
 
-  public CatalogSyncException(String message, Throwable e) {
-    super(ErrorCode.CATALOG_SYNC_GENERIC_EXCEPTION, message, e);
-  }
+/**
+ * This class is designed to encapsulate a set of partition values and the corresponding storage
+ * location where the data for this partition is stored.
+ */
+@Getter
+public class Partition {
 
-  public CatalogSyncException(String message) {
-    super(ErrorCode.CATALOG_SYNC_GENERIC_EXCEPTION, message);
+  /**
+   * A list of values defining this partition. For example, these values might correspond to
+   * partition keys in a dataset (e.g., year, month, day).
+   */
+  private final List<String> values;
+
+  /**
+   * The storage location associated with this partition. Typically, this would be a path in a file
+   * system or object store.
+   */
+  private final String storageLocation;
+
+  public Partition(List<String> values, String storageLocation) {
+    this.values = values;
+    this.storageLocation = storageLocation;
   }
 }

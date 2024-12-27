@@ -44,7 +44,7 @@ public class HudiConversionSourceProvider extends ConversionSourceProvider<Hoodi
     }
 
     final HudiSourcePartitionSpecExtractor sourcePartitionSpecExtractor =
-        HudiSourceConfig.fromPartitionFieldSpecConfig(sourceTable.getPartitionSpec())
+        HudiSourceConfig.fromProperties(sourceTable.getAdditionalProperties())
             .loadSourcePartitionSpecExtractor();
 
     return new HudiConversionSource(metaClient, sourcePartitionSpecExtractor);

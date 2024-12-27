@@ -42,7 +42,6 @@ class ExternalTable {
   protected final String[] namespace;
   /** The configuration for interacting with the catalog that manages this table */
   protected final CatalogConfig catalogConfig;
-  protected final String partitionSpec;
   /** Optional, additional properties that can be used to define interactions with the table */
   protected final Properties additionalProperties;
 
@@ -52,14 +51,12 @@ class ExternalTable {
       @NonNull String basePath,
       String[] namespace,
       CatalogConfig catalogConfig,
-      String partitionSpec,
       Properties additionalProperties) {
     this.name = name;
     this.formatName = formatName;
     this.basePath = sanitizeBasePath(basePath);
     this.namespace = namespace;
     this.catalogConfig = catalogConfig;
-    this.partitionSpec = partitionSpec;
     this.additionalProperties = additionalProperties;
   }
 

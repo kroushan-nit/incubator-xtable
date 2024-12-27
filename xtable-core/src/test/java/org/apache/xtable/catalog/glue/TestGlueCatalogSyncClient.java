@@ -34,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ public class TestGlueCatalogSyncClient extends GlueCatalogSyncTestBase {
 
   private GlueCatalogSyncClient createGlueCatalogSyncClient() {
     return new GlueCatalogSyncClient(
-        catalogConfig, testConfiguration, mockGlueCatalogConfig, mockGlueClient, mockTableBuilder);
+        catalogConfig, testConfiguration, mockGlueCatalogConfig, mockGlueClient, mockTableBuilder, Optional.empty());
   }
 
   void setupCommonMocks() {

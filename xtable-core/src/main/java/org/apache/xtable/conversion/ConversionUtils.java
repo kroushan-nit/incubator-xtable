@@ -28,7 +28,6 @@ public class ConversionUtils {
         table.getBasePath(),
         table.getNamespace(),
         table.getCatalogConfig(),
-        table.getPartitionSpec(),
         table.getAdditionalProperties());
   }
 }

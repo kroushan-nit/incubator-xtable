@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,7 @@ import org.apache.hudi.common.table.timeline.HoodieInstant;
 import org.apache.hudi.common.table.timeline.HoodieTimeline;
 import org.apache.hudi.common.table.timeline.TimelineUtils;
 import org.apache.hudi.common.util.Option;
+import org.apache.hudi.common.util.VisibleForTesting;
 import org.apache.hudi.hadoop.CachingPath;
 import org.apache.hudi.sync.common.model.PartitionValueExtractor;
 
@@ -53,8 +55,8 @@ import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 @Log4j2
 public class HudiPartitionSyncTool implements PartitionSyncTool {
 
-  private final HoodieTableMetaClient metaClient;
   private final CatalogPartitionSyncOperations catalogClient;
+  private final HudiTableManager hudiTableManager;
   private final PartitionValueExtractor partitionValuesExtractor;
   private final Configuration configuration;
 
@@ -62,14 +64,37 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
   public static final String LAST_COMMIT_COMPLETION_TIME_SYNC = "last_commit_completion_time_sync";
 
   public HudiPartitionSyncTool(
-      HoodieTableMetaClient metaClient,
       CatalogPartitionSyncOperations catalogClient,
       PartitionValueExtractor partitionValueExtractor,
       Configuration configuration) {
-    this.metaClient = metaClient;
     this.catalogClient = catalogClient;
+    this.hudiTableManager = HudiTableManager.of(configuration);
     this.partitionValuesExtractor = partitionValueExtractor;
     this.configuration = configuration;
+  }
+
+  @VisibleForTesting
+  HudiPartitionSyncTool(
+      CatalogPartitionSyncOperations catalogClient,
+      HudiTableManager hudiTableManager,
+      PartitionValueExtractor partitionValueExtractor,
+      Configuration configuration) {
+    this.catalogClient = catalogClient;
+    this.hudiTableManager = hudiTableManager;
+    this.partitionValuesExtractor = partitionValueExtractor;
+    this.configuration = configuration;
+  }
+
+  HoodieTableMetaClient getMetaClient(String basePath) {
+    Optional<HoodieTableMetaClient> metaClientOpt =
+        hudiTableManager.loadTableMetaClientIfExists(basePath);
+
+    if (!metaClientOpt.isPresent()) {
+      throw new CatalogSyncException(
+          "failed to get meta client since table is not present in the base path " + basePath);
+    }
+
+    return metaClientOpt.get();
   }
 
   /**
@@ -80,7 +105,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    *     otherwise.
    */
   private boolean syncAllPartitions(
-      InternalTable internalTable, CatalogTableIdentifier tableIdentifier) {
+      HoodieTableMetaClient metaClient, InternalTable internalTable, CatalogTableIdentifier tableIdentifier) {
     try {
       if (internalTable.getPartitioningFields().isEmpty()) {
         return false;
@@ -91,15 +116,16 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
           getAllPartitionPathsOnStorage(internalTable.getBasePath());
       boolean partitionsChanged =
           syncPartitions(
+              metaClient,
               tableIdentifier,
-              getPartitionEvents(allPartitionsInMetastore, allPartitionsOnStorage));
+              getPartitionEvents(metaClient, allPartitionsInMetastore, allPartitionsOnStorage));
       if (partitionsChanged) {
-        updateLastCommitTimeSynced(tableIdentifier);
+        updateLastCommitTimeSynced(metaClient, tableIdentifier);
       }
       return partitionsChanged;
     } catch (Exception e) {
       throw new CatalogSyncException(
-          "Failed to sync partitions for table " + tableIdentifier.getTableName(), e);
+          "Failed to sync partitions for table " + tableIdentifier.getId(), e);
     }
   }
 
@@ -120,6 +146,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
         Option.ofNullable(lastCommitTimeSyncedProperties.get(LAST_COMMIT_TIME_SYNC));
     Option<String> lastCommitCompletionTimeSynced =
         Option.ofNullable(lastCommitTimeSyncedProperties.get(LAST_COMMIT_COMPLETION_TIME_SYNC));
+    HoodieTableMetaClient metaClient = getMetaClient(table.getBasePath());
     if (!lastCommitTimeSynced.isPresent()
         || metaClient.getActiveTimeline().isBeforeTimelineStarts(lastCommitTimeSynced.get())) {
       // If the last commit time synced is before the start of the active timeline,
@@ -129,11 +156,11 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
           "Sync all partitions given the last commit time synced is empty or "
               + "before the start of the active timeline. Listing all partitions in "
               + table.getBasePath());
-      return syncAllPartitions(table, tableIdentifier);
+      return syncAllPartitions(metaClient, table, tableIdentifier);
     } else {
       List<String> writtenPartitionsSince =
           getWrittenPartitionsSince(
-              table.getBasePath(),
+              metaClient,
               Option.ofNullable(lastCommitTimeSynced.get()),
               Option.ofNullable(lastCommitCompletionTimeSynced.get()));
       log.info("Storage partitions scan complete. Found " + writtenPartitionsSince.size());
@@ -142,18 +169,19 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
       // find dropped partitions, if any, in the latest commit
       Set<String> droppedPartitions =
           getDroppedPartitionsSince(
+              metaClient,
               Option.ofNullable(lastCommitTimeSynced.get()),
               Option.of(lastCommitCompletionTimeSynced.get()));
       boolean partitionsChanged =
-          syncPartitions(tableIdentifier, writtenPartitionsSince, droppedPartitions);
+          syncPartitions(metaClient, tableIdentifier, writtenPartitionsSince, droppedPartitions);
       if (partitionsChanged) {
-        updateLastCommitTimeSynced(tableIdentifier);
+        updateLastCommitTimeSynced(metaClient, tableIdentifier);
       }
       return partitionsChanged;
     }
   }
 
-  private void updateLastCommitTimeSynced(CatalogTableIdentifier tableIdentifier) {
+  private void updateLastCommitTimeSynced(HoodieTableMetaClient metaClient, CatalogTableIdentifier tableIdentifier) {
     HoodieTimeline activeTimeline = metaClient.getActiveTimeline();
     Option<String> lastCommitSynced = activeTimeline.lastInstant().map(HoodieInstant::getTimestamp);
     Option<String> lastCommitCompletionSynced =
@@ -186,10 +214,11 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
   }
 
   public List<String> getWrittenPartitionsSince(
-      String basePath,
+      HoodieTableMetaClient metaClient,
       Option<String> lastCommitTimeSynced,
       Option<String> lastCommitCompletionTimeSynced) {
     if (!lastCommitTimeSynced.isPresent()) {
+      String basePath = metaClient.getBasePathV2().toUri().toString();
       log.info("Last commit time synced is not known, listing all partitions in " + basePath);
       return getAllPartitionPathsOnStorage(basePath);
     } else {
@@ -208,12 +237,12 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    * then consider only active timeline. Going through archive timeline is a costly operation, and
    * it should be avoided unless some start time is given.
    */
-  public Set<String> getDroppedPartitionsSince(
-      Option<String> lastCommitTimeSynced, Option<String> lastCommitCompletionTimeSynced) {
+  private Set<String> getDroppedPartitionsSince(
+      HoodieTableMetaClient metaClient, Option<String> lastCommitTimeSynced, Option<String> lastCommitCompletionTimeSynced) {
     HoodieTimeline timeline =
         lastCommitTimeSynced.isPresent()
             ? TimelineUtils.getCommitsTimelineAfter(
-                metaClient, lastCommitTimeSynced.get(), lastCommitCompletionTimeSynced)
+            metaClient, lastCommitTimeSynced.get(), lastCommitCompletionTimeSynced)
             : metaClient.getActiveTimeline();
     return new HashSet<>(TimelineUtils.getDroppedPartitions(timeline));
   }
@@ -227,23 +256,23 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    *     otherwise.
    */
   private boolean syncPartitions(
-      CatalogTableIdentifier tableIdentifier, List<PartitionEvent> partitionEventList) {
+      HoodieTableMetaClient metaClient, CatalogTableIdentifier tableIdentifier, List<PartitionEvent> partitionEventList) {
     List<Partition> newPartitions =
-        filterPartitions(partitionEventList, PartitionEvent.PartitionEventType.ADD);
+        filterPartitions(metaClient.getBasePathV2(), partitionEventList, PartitionEvent.PartitionEventType.ADD);
     if (!newPartitions.isEmpty()) {
       log.info("New Partitions " + newPartitions);
       catalogClient.addPartitionsToTable(tableIdentifier, newPartitions);
     }
 
     List<Partition> updatePartitions =
-        filterPartitions(partitionEventList, PartitionEvent.PartitionEventType.UPDATE);
+        filterPartitions(metaClient.getBasePathV2(), partitionEventList, PartitionEvent.PartitionEventType.UPDATE);
     if (!updatePartitions.isEmpty()) {
       log.info("Changed Partitions " + updatePartitions);
       catalogClient.updatePartitionsToTable(tableIdentifier, updatePartitions);
     }
 
     List<Partition> dropPartitions =
-        filterPartitions(partitionEventList, PartitionEvent.PartitionEventType.DROP);
+        filterPartitions(metaClient.getBasePathV2(), partitionEventList, PartitionEvent.PartitionEventType.DROP);
     if (!dropPartitions.isEmpty()) {
       log.info("Drop Partitions " + dropPartitions);
       catalogClient.dropPartitions(tableIdentifier, dropPartitions);
@@ -253,14 +282,14 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
   }
 
   private List<Partition> filterPartitions(
-      List<PartitionEvent> events, PartitionEvent.PartitionEventType eventType) {
+      Path basePath, List<PartitionEvent> events, PartitionEvent.PartitionEventType eventType) {
     return events.stream()
         .filter(s -> s.eventType == eventType)
         .map(
             s ->
                 new Partition(
                     partitionValuesExtractor.extractPartitionValuesInPath(s.storagePartition),
-                    new Path(metaClient.getBasePathV2(), s.storagePartition).toUri().toString()))
+                    new Path(basePath, s.storagePartition).toUri().toString()))
         .collect(Collectors.toList());
   }
 
@@ -275,6 +304,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    *     otherwise.
    */
   private boolean syncPartitions(
+      HoodieTableMetaClient metaClient,
       CatalogTableIdentifier tableIdentifier,
       List<String> writtenPartitionsSince,
       Set<String> droppedPartitions) {
@@ -285,11 +315,12 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
 
       List<Partition> hivePartitions = getTablePartitions(tableIdentifier);
       return syncPartitions(
+          metaClient,
           tableIdentifier,
-          getPartitionEvents(hivePartitions, writtenPartitionsSince, droppedPartitions));
+          getPartitionEvents(metaClient, hivePartitions, writtenPartitionsSince, droppedPartitions));
     } catch (Exception e) {
       throw new CatalogSyncException(
-          "Failed to sync partitions for table " + tableIdentifier.getTableName(), e);
+          "Failed to sync partitions for table " + tableIdentifier.getId(), e);
     }
   }
 
@@ -314,8 +345,8 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    * @param allPartitionsOnStorage All partitions of a table stored on the storage.
    * @return partition events for changed partitions.
    */
-  public List<PartitionEvent> getPartitionEvents(
-      List<Partition> allPartitionsInMetastore, List<String> allPartitionsOnStorage) {
+  private List<PartitionEvent> getPartitionEvents(
+      HoodieTableMetaClient metaClient, List<Partition> allPartitionsInMetastore, List<String> allPartitionsOnStorage) {
     Map<String, String> paths = getPartitionValuesToPathMapping(allPartitionsInMetastore);
     Set<String> partitionsToDrop = new HashSet<>(paths.keySet());
 
@@ -366,6 +397,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
    * added or updated. Generate a list of PartitionEvent based on the changes required.
    */
   public List<PartitionEvent> getPartitionEvents(
+      HoodieTableMetaClient metaClient,
       List<Partition> partitionsInMetastore,
       List<String> writtenPartitionsOnStorage,
       Set<String> droppedPartitionsOnStorage) {
