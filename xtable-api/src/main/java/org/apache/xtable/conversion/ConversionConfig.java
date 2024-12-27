@@ -51,6 +51,7 @@ public class ConversionConfig {
       SyncMode syncMode) {
     this.sourceTable = sourceTable;
     this.targetTables = targetTables;
+    this.targetCatalogs = targetCatalogs;
     Preconditions.checkArgument(
         targetTables != null && !targetTables.isEmpty(),
         "Please provide at-least one format to sync");
