@@ -28,7 +28,7 @@ import org.mockito.Mock;
 
 import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.model.InternalTable;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.model.schema.InternalSchema;
 import org.apache.xtable.model.storage.CatalogType;
 import org.apache.xtable.model.storage.TableFormat;
@@ -72,11 +72,8 @@ public class GlueCatalogSyncTestBase {
           .tableFormat(TableFormat.HUDI)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
           .build();
-  protected static final CatalogTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
-      CatalogTableIdentifier.builder()
-          .databaseName(TEST_GLUE_DATABASE)
-          .tableName(TEST_GLUE_TABLE)
-          .build();
+  protected static final ThreePartHierarchicalTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
+      new ThreePartHierarchicalTableIdentifier(TEST_GLUE_DATABASE, TEST_GLUE_TABLE);
   protected static final ExternalCatalogConfig catalogConfig =
       ExternalCatalogConfig.builder()
           .catalogId(TEST_CATALOG_NAME)

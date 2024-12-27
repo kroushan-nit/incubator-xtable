@@ -18,6 +18,8 @@
  
 package org.apache.xtable.catalog.glue;
 
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
+
 import java.time.ZonedDateTime;
 
 import lombok.extern.log4j.Log4j2;
@@ -31,6 +33,8 @@ import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.spi.sync.CatalogSyncClient;
 
 import software.amazon.awssdk.services.glue.GlueClient;
@@ -96,7 +100,8 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public boolean hasDatabase(String databaseName) {
+  public boolean hasDatabase(CatalogTableIdentifier tableIdentifier) {
+    String databaseName = castToHierarchicalTableIdentifier(tableIdentifier).getDatabaseName();
     try {
       return glueClient
               .getDatabase(
@@ -114,7 +119,8 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
   }
 
   @Override
-  public void createDatabase(String databaseName) {
+  public void createDatabase(CatalogTableIdentifier tableIdentifier) {
+    String databaseName = castToHierarchicalTableIdentifier(tableIdentifier).getDatabaseName();
     try {
       glueClient.createDatabase(
           CreateDatabaseRequest.builder()
@@ -132,52 +138,55 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
 
   @Override
   public Table getTable(CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     try {
       GetTableResponse response =
           glueClient.getTable(
               GetTableRequest.builder()
                   .catalogId(glueCatalogConfig.getCatalogId())
-                  .databaseName(tableIdentifier.getDatabaseName())
-                  .name(tableIdentifier.getTableName())
+                  .databaseName(tblIdentifier.getDatabaseName())
+                  .name(tblIdentifier.getTableName())
                   .build());
       return response.table();
     } catch (EntityNotFoundException e) {
       return null;
     } catch (Exception e) {
-      throw new CatalogSyncException("Failed to get table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to get table: " + tblIdentifier.getId(), e);
     }
   }
 
   @Override
   public void createTable(InternalTable table, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     TableInput tableInput = tableBuilder.getCreateTableRequest(table, tableIdentifier);
     try {
       glueClient.createTable(
           CreateTableRequest.builder()
               .catalogId(glueCatalogConfig.getCatalogId())
-              .databaseName(tableIdentifier.getDatabaseName())
+              .databaseName(tblIdentifier.getDatabaseName())
               .tableInput(tableInput)
               .build());
     } catch (Exception e) {
-      throw new CatalogSyncException("Failed to create table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to create table: " + tblIdentifier.getId(), e);
     }
   }
 
   @Override
   public void refreshTable(
       InternalTable table, Table catalogTable, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     TableInput tableInput =
         tableBuilder.getUpdateTableRequest(table, catalogTable, tableIdentifier);
     try {
       glueClient.updateTable(
           UpdateTableRequest.builder()
               .catalogId(glueCatalogConfig.getCatalogId())
-              .databaseName(tableIdentifier.getDatabaseName())
+              .databaseName(tblIdentifier.getDatabaseName())
               .skipArchive(true)
               .tableInput(tableInput)
               .build());
     } catch (Exception e) {
-      throw new CatalogSyncException("Failed to refresh table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to refresh table: " + tblIdentifier.getId(), e);
     }
   }
 
@@ -191,15 +200,16 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
 
   @Override
   public void dropTable(InternalTable table, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     try {
       glueClient.deleteTable(
           DeleteTableRequest.builder()
               .catalogId(glueCatalogConfig.getCatalogId())
-              .databaseName(tableIdentifier.getDatabaseName())
-              .name(tableIdentifier.getTableName())
+              .databaseName(tblIdentifier.getDatabaseName())
+              .name(tblIdentifier.getTableName())
               .build());
     } catch (Exception e) {
-      throw new CatalogSyncException("Failed to drop table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to drop table: " + tableIdentifier.getId(), e);
     }
   }
 
@@ -217,13 +227,11 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
    */
   private void validateTempTableCreation(
       InternalTable table, CatalogTableIdentifier tableIdentifier) {
+    HierarchicalTableIdentifier tblIdentifier = castToHierarchicalTableIdentifier(tableIdentifier);
     String tempTableName =
-        tableIdentifier.getTableName() + TEMP_SUFFIX + ZonedDateTime.now().toEpochSecond();
-    CatalogTableIdentifier tempTableIdentifier =
-        CatalogTableIdentifier.builder()
-            .tableName(tempTableName)
-            .databaseName(tableIdentifier.getDatabaseName())
-            .build();
+        tblIdentifier.getTableName() + TEMP_SUFFIX + ZonedDateTime.now().toEpochSecond();
+    ThreePartHierarchicalTableIdentifier tempTableIdentifier =
+        new ThreePartHierarchicalTableIdentifier(tblIdentifier.getDatabaseName(), tempTableName);
     createTable(table, tempTableIdentifier);
     dropTable(table, tempTableIdentifier);
   }
