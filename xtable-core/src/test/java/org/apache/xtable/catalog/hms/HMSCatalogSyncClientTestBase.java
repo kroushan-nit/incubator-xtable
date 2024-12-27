@@ -31,7 +31,7 @@ import org.mockito.Mock;
 
 import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.model.InternalTable;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.model.schema.InternalSchema;
 import org.apache.xtable.model.storage.CatalogType;
 import org.apache.xtable.model.storage.TableFormat;
@@ -69,11 +69,8 @@ public class HMSCatalogSyncClientTestBase {
           .tableFormat(TableFormat.HUDI)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
           .build();
-  protected static final CatalogTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
-      CatalogTableIdentifier.builder()
-          .databaseName(TEST_HMS_DATABASE)
-          .tableName(TEST_HMS_TABLE)
-          .build();
+  protected static final ThreePartHierarchicalTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
+      new ThreePartHierarchicalTableIdentifier(TEST_HMS_DATABASE, TEST_HMS_TABLE);
 
   protected Table newTable(String dbName, String tableName) {
     return newTable(dbName, tableName, new HashMap<>());

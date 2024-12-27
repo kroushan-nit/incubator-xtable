@@ -47,7 +47,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.apache.xtable.conversion.SourceTable;
 import org.apache.xtable.exception.CatalogSyncException;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,8 +59,8 @@ class TestHMSCatalogConversionSource {
   private static final String HMS_DB = "hms_db";
   private static final String HMS_TABLE = "hms_tbl";
   private static final String TABLE_BASE_PATH = "/var/data/table";
-  private final CatalogTableIdentifier tableIdentifier =
-      CatalogTableIdentifier.builder().databaseName(HMS_DB).tableName(HMS_TABLE).build();
+  private final ThreePartHierarchicalTableIdentifier tableIdentifier =
+      new ThreePartHierarchicalTableIdentifier(HMS_DB, HMS_TABLE);
 
   @BeforeEach
   void init() {

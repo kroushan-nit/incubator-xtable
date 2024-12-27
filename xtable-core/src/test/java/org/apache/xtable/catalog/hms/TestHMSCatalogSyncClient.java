@@ -54,7 +54,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.exception.CatalogSyncException;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 
 @ExtendWith(MockitoExtension.class)
 public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
@@ -87,7 +87,7 @@ public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
       when(mockMetaStoreClient.getDatabase(TEST_HMS_DATABASE))
           .thenThrow(new NoSuchObjectException("db not found"));
     }
-    boolean output = hmsCatalogSyncClient.hasDatabase(TEST_HMS_DATABASE);
+    boolean output = hmsCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER);
     if (isDbPresent) {
       assertTrue(output);
     } else {
@@ -104,7 +104,8 @@ public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
         .thenThrow(new TException("something went wrong"));
     CatalogSyncException exception =
         assertThrows(
-            CatalogSyncException.class, () -> hmsCatalogSyncClient.hasDatabase(TEST_HMS_DATABASE));
+            CatalogSyncException.class,
+            () -> hmsCatalogSyncClient.hasDatabase(TEST_CATALOG_TABLE_IDENTIFIER));
     assertEquals(
         String.format("Failed to get database: %s", TEST_HMS_DATABASE), exception.getMessage());
     verify(mockMetaStoreClient, times(1)).getDatabase(TEST_HMS_DATABASE);
@@ -160,12 +161,12 @@ public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
       CatalogSyncException exception =
           assertThrows(
               CatalogSyncException.class,
-              () -> hmsCatalogSyncClient.createDatabase(TEST_HMS_DATABASE));
+              () -> hmsCatalogSyncClient.createDatabase(TEST_CATALOG_TABLE_IDENTIFIER));
       assertEquals(
           String.format("Failed to create database: %s", TEST_HMS_DATABASE),
           exception.getMessage());
     } else {
-      hmsCatalogSyncClient.createDatabase(TEST_HMS_DATABASE);
+      hmsCatalogSyncClient.createDatabase(TEST_CATALOG_TABLE_IDENTIFIER);
     }
     verify(mockMetaStoreClient, times(1)).createDatabase(database);
   }
@@ -337,11 +338,9 @@ public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
       mockZonedDateTime.when(ZonedDateTime::now).thenReturn(zonedDateTime);
 
       String tempTableName = TEST_HMS_TABLE + "_temp" + ZonedDateTime.now().toEpochSecond();
-      final CatalogTableIdentifier tempTableIdentifier =
-          CatalogTableIdentifier.builder()
-              .databaseName(TEST_HMS_DATABASE)
-              .tableName(tempTableName)
-              .build();
+      final ThreePartHierarchicalTableIdentifier tempTableIdentifier =
+          new ThreePartHierarchicalTableIdentifier(
+              TEST_CATALOG_TABLE_IDENTIFIER.getDatabaseName(), tempTableName);
 
       Table table = newTable(TEST_HMS_DATABASE, TEST_HMS_TABLE);
       Table tempTable = newTable(TEST_HMS_DATABASE, tempTableName);

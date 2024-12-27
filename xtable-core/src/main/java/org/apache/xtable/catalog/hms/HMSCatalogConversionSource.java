@@ -18,6 +18,8 @@
  
 package org.apache.xtable.catalog.hms;
 
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
+
 import java.util.Locale;
 import java.util.Properties;
 
@@ -36,6 +38,7 @@ import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.conversion.SourceTable;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.spi.extractor.CatalogConversionSource;
 
 public class HMSCatalogConversionSource implements CatalogConversionSource {
@@ -60,7 +63,8 @@ public class HMSCatalogConversionSource implements CatalogConversionSource {
   }
 
   @Override
-  public SourceTable getSourceTable(CatalogTableIdentifier tableIdentifier) {
+  public SourceTable getSourceTable(CatalogTableIdentifier tblIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(tblIdentifier);
     try {
       Table table =
           metaStoreClient.getTable(
@@ -72,7 +76,7 @@ public class HMSCatalogConversionSource implements CatalogConversionSource {
       String tableFormat = TableFormatUtils.getTableFormat(table.getParameters());
       if (Strings.isNullOrEmpty(tableFormat)) {
         throw new IllegalStateException(
-            String.format("TableFormat is null or empty for table: %s", tableIdentifier));
+            String.format("TableFormat is null or empty for table: %s", tableIdentifier.getId()));
       }
       tableFormat = tableFormat.toUpperCase(Locale.ENGLISH);
 
@@ -90,7 +94,7 @@ public class HMSCatalogConversionSource implements CatalogConversionSource {
           .additionalProperties(tableProperties)
           .build();
     } catch (TException e) {
-      throw new CatalogSyncException("Failed to get table: " + tableIdentifier, e);
+      throw new CatalogSyncException("Failed to get table: " + tableIdentifier.getId(), e);
     }
   }
 }
