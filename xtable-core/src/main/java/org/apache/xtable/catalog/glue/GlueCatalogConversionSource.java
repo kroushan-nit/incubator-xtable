@@ -23,7 +23,7 @@ import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIden
 import java.util.Locale;
 import java.util.Properties;
 
-import javax.security.auth.login.Configuration;
+import org.apache.hadoop.conf.Configuration;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
