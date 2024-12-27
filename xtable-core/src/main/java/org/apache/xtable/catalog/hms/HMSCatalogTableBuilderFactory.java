@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
+import org.apache.xtable.catalog.hms.table.HudiHMSCatalogTableBuilder;
 import org.apache.xtable.catalog.hms.table.IcebergHMSCatalogTableBuilder;
 import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
@@ -40,10 +41,12 @@ import org.apache.xtable.model.storage.TableFormat;
 public class HMSCatalogTableBuilderFactory {
 
   public static CatalogTableBuilder<Table, Table> getTableBuilder(
-      String tableFormat, Configuration configuration) {
+      String tableFormat, HMSCatalogConfig hmsCatalogConfig, Configuration configuration) {
     switch (tableFormat) {
       case TableFormat.ICEBERG:
         return new IcebergHMSCatalogTableBuilder(configuration);
+      case TableFormat.HUDI:
+        return new HudiHMSCatalogTableBuilder(hmsCatalogConfig, configuration);
       default:
         throw new NotSupportedException("Unsupported table format: " + tableFormat);
     }
