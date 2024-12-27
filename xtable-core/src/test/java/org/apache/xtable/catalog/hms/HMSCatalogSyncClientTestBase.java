@@ -63,6 +63,12 @@ public class HMSCatalogSyncClientTestBase {
           .tableFormat(TableFormat.ICEBERG)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
           .build();
+  protected static final InternalTable TEST_DELTA_INTERNAL_TABLE =
+      InternalTable.builder()
+          .basePath(TEST_BASE_PATH)
+          .tableFormat(TableFormat.DELTA)
+          .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
+          .build();
   protected static final InternalTable TEST_HUDI_INTERNAL_TABLE =
       InternalTable.builder()
           .basePath(TEST_BASE_PATH)

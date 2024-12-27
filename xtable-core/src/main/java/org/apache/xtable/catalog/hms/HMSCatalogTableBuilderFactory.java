@@ -31,6 +31,7 @@ import org.apache.hadoop.hive.metastore.api.Table;
 import org.apache.hadoop.security.UserGroupInformation;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
+import org.apache.xtable.catalog.hms.table.DeltaHMSCatalogTableBuilder;
 import org.apache.xtable.catalog.hms.table.IcebergHMSCatalogTableBuilder;
 import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
@@ -44,6 +45,8 @@ public class HMSCatalogTableBuilderFactory {
     switch (tableFormat) {
       case TableFormat.ICEBERG:
         return new IcebergHMSCatalogTableBuilder(configuration);
+      case TableFormat.DELTA:
+        return new DeltaHMSCatalogTableBuilder();
       default:
         throw new NotSupportedException("Unsupported table format: " + tableFormat);
     }
