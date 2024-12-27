@@ -125,7 +125,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
       return partitionsChanged;
     } catch (Exception e) {
       throw new CatalogSyncException(
-          "Failed to sync partitions for table " + tableIdentifier.getTableName(), e);
+          "Failed to sync partitions for table " + tableIdentifier.getId(), e);
     }
   }
 
@@ -320,7 +320,7 @@ public class HudiPartitionSyncTool implements PartitionSyncTool {
           getPartitionEvents(metaClient, hivePartitions, writtenPartitionsSince, droppedPartitions));
     } catch (Exception e) {
       throw new CatalogSyncException(
-          "Failed to sync partitions for table " + tableIdentifier.getTableName(), e);
+          "Failed to sync partitions for table " + tableIdentifier.getId(), e);
     }
   }
 

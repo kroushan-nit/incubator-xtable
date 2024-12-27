@@ -21,6 +21,7 @@ package org.apache.xtable.catalog.hms.table;
 import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getInputFormatClassName;
 import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getOutputFormatClassName;
 import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getSerDeClassName;
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
 
 import java.io.IOException;
 import java.time.ZonedDateTime;
@@ -53,6 +54,7 @@ import org.apache.xtable.hudi.HudiSparkDataSourceTableUtils;
 import org.apache.xtable.hudi.HudiTableManager;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.schema.InternalSchema;
 import org.apache.xtable.model.storage.TableFormat;
@@ -101,7 +103,8 @@ public class HudiHMSCatalogTableBuilder implements CatalogTableBuilder<Table, Ta
   }
 
   @Override
-  public Table getCreateTableRequest(InternalTable table, CatalogTableIdentifier tableIdentifier) {
+  public Table getCreateTableRequest(InternalTable table, CatalogTableIdentifier catalogTableIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     Table newTb = new Table();
     newTb.setDbName(tableIdentifier.getDatabaseName());
     newTb.setTableName(tableIdentifier.getTableName());

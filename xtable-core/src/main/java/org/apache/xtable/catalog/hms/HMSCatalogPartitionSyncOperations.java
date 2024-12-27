@@ -37,6 +37,9 @@ import org.apache.xtable.catalog.CatalogPartitionSyncOperations;
 import org.apache.xtable.catalog.Partition;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
+
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
 
 @Log4j2
 public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOperations {
@@ -51,7 +54,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
   }
 
   @Override
-  public List<Partition> getAllPartitions(CatalogTableIdentifier tableIdentifier) {
+  public List<Partition> getAllPartitions(CatalogTableIdentifier catalogTableIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       return metaStoreClient
           .listPartitions(
@@ -67,7 +71,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
 
   @Override
   public void addPartitionsToTable(
-      CatalogTableIdentifier tableIdentifier, List<Partition> partitionsToAdd) {
+      CatalogTableIdentifier catalogTableIdentifier, List<Partition> partitionsToAdd) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     if (partitionsToAdd.isEmpty()) {
       log.info("No partitions to add for " + tableIdentifier);
       return;
@@ -111,7 +116,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
 
   @Override
   public void updatePartitionsToTable(
-      CatalogTableIdentifier tableIdentifier, List<Partition> changedPartitions) {
+      CatalogTableIdentifier catalogTableIdentifier, List<Partition> changedPartitions) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       Table table =
           metaStoreClient.getTable(
@@ -151,7 +157,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
 
   @Override
   public void dropPartitions(
-      CatalogTableIdentifier tableIdentifier, List<Partition> partitionsToDrop) {
+      CatalogTableIdentifier catalogTableIdentifier, List<Partition> partitionsToDrop) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       for (Partition partition : partitionsToDrop) {
         metaStoreClient.dropPartition(
@@ -167,7 +174,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
 
   @Override
   public Map<String, String> getTableProperties(
-      CatalogTableIdentifier tableIdentifier, List<String> keysToRetrieve) {
+      CatalogTableIdentifier catalogTableIdentifier, List<String> keysToRetrieve) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       Table table =
           metaStoreClient.getTable(
@@ -185,7 +193,8 @@ public class HMSCatalogPartitionSyncOperations implements CatalogPartitionSyncOp
 
   @Override
   public void updateTableProperties(
-      CatalogTableIdentifier tableIdentifier, Map<String, String> propertiesToUpdate) {
+      CatalogTableIdentifier catalogTableIdentifier, Map<String, String> propertiesToUpdate) {
+    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       if (propertiesToUpdate == null || propertiesToUpdate.isEmpty()) {
         return;

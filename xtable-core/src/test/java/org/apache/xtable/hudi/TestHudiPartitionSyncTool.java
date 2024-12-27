@@ -47,6 +47,7 @@ import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -100,8 +101,9 @@ public class TestHudiPartitionSyncTool {
                               .build())
                       .build()))
           .build();
-  protected static final CatalogTableIdentifier TEST_TABLE_IDENTIFIER =
-      CatalogTableIdentifier.builder().databaseName(HMS_DATABASE).tableName(HMS_TABLE).build();
+
+  protected static final ThreePartHierarchicalTableIdentifier TEST_TABLE_IDENTIFIER =
+      new ThreePartHierarchicalTableIdentifier(HMS_DATABASE, HMS_TABLE);
 
   @Mock private CatalogPartitionSyncOperations mockCatalogClient;
   @Mock private HoodieTableMetaClient mockMetaClient;
@@ -268,8 +270,8 @@ public class TestHudiPartitionSyncTool {
               TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_TABLE_IDENTIFIER));
 
       // verify add partitions
-      ArgumentCaptor<CatalogTableIdentifier> tableIdentifierArgumentCaptor =
-          ArgumentCaptor.forClass(CatalogTableIdentifier.class);
+      ArgumentCaptor<ThreePartHierarchicalTableIdentifier> tableIdentifierArgumentCaptor =
+          ArgumentCaptor.forClass(ThreePartHierarchicalTableIdentifier.class);
       ArgumentCaptor<List<Partition>> addPartitionsCaptor = ArgumentCaptor.forClass(List.class);
       verify(mockCatalogClient, times(1))
           .addPartitionsToTable(
