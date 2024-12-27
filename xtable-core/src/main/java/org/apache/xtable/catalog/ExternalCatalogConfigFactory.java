@@ -20,16 +20,27 @@ package org.apache.xtable.catalog;
 
 import java.util.Map;
 
+import org.apache.xtable.catalog.glue.GlueCatalogConversionSource;
+import org.apache.xtable.catalog.glue.GlueCatalogSyncClient;
 import org.apache.xtable.conversion.ExternalCatalogConfig;
+import org.apache.xtable.exception.NotSupportedException;
+import org.apache.xtable.model.storage.CatalogType;
 
 /** A factory class which returns {@link ExternalCatalogConfig} based on catalogType. */
 public class ExternalCatalogConfigFactory {
 
   public static ExternalCatalogConfig fromCatalogType(
       String catalogType, String catalogId, Map<String, String> properties) {
-    // TODO: Choose existing implementation based on catalogType.
-    String catalogSyncClientImpl = "";
-    String catalogConversionSourceImpl = "";
+    String catalogSyncClientImpl;
+    String catalogConversionSourceImpl;
+    switch (catalogType) {
+      case CatalogType.GLUE:
+        catalogSyncClientImpl = GlueCatalogSyncClient.class.getName();
+        catalogConversionSourceImpl = GlueCatalogConversionSource.class.getName();
+        break;
+      default:
+        throw new NotSupportedException("Unsupported catalogType: " + catalogType);
+    }
     return ExternalCatalogConfig.builder()
         .catalogType(catalogType)
         .catalogSyncClientImpl(catalogSyncClientImpl)
