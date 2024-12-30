@@ -18,6 +18,8 @@
  
 package org.apache.xtable.catalog.glue;
 
+import org.apache.hudi.hive.MultiPartKeysValueExtractor;
+
 import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,6 +55,14 @@ public class GlueCatalogConfig {
   @JsonProperty("externalCatalog.glue.credentialsProviderClass")
   private String clientCredentialsProviderClass;
 
+  @JsonProperty("externalCatalog.glue.schema_string_length_thresh")
+  private int schemaLengthThreshold = 4000;
+
+  @JsonProperty("externalCatalog.glue.partition_extractor_class")
+  private String partitionExtractorClass = MultiPartKeysValueExtractor.class.getName();
+
+  @JsonProperty("externalCatalog.glue.max_partitions_per_request")
+  private int maxPartitionsPerRequest = 1000;
   /**
    * In case a credentialsProviderClass is configured and require additional properties for
    * instantiation, those properties should start with {@link #CLIENT_CREDENTIAL_PROVIDER_PREFIX}.
