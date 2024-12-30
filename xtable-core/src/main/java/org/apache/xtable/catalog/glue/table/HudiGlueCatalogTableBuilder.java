@@ -1,11 +1,43 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+ 
 package org.apache.xtable.catalog.glue.table;
+
+import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getInputFormatClassName;
+import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getOutputFormatClassName;
+import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getSerDeClassName;
+import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
+
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.apache.hadoop.conf.Configuration;
 
 import org.apache.hudi.common.model.HoodieFileFormat;
 import org.apache.hudi.common.table.HoodieTableMetaClient;
 import org.apache.hudi.common.util.ConfigUtils;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.apache.hadoop.conf.Configuration;
+
 import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.catalog.glue.GlueCatalogConfig;
 import org.apache.xtable.catalog.glue.GlueSchemaExtractor;
@@ -18,23 +50,12 @@ import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.schema.InternalSchema;
 import org.apache.xtable.model.storage.TableFormat;
+
 import software.amazon.awssdk.services.glue.model.Column;
 import software.amazon.awssdk.services.glue.model.SerDeInfo;
 import software.amazon.awssdk.services.glue.model.StorageDescriptor;
 import software.amazon.awssdk.services.glue.model.Table;
 import software.amazon.awssdk.services.glue.model.TableInput;
-
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getInputFormatClassName;
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getOutputFormatClassName;
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getSerDeClassName;
-import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
 
 public class HudiGlueCatalogTableBuilder implements CatalogTableBuilder<TableInput, Table> {
   protected static final String GLUE_EXTERNAL_TABLE_TYPE = "EXTERNAL_TABLE";
@@ -78,8 +99,10 @@ public class HudiGlueCatalogTableBuilder implements CatalogTableBuilder<TableInp
   }
 
   @Override
-  public TableInput getCreateTableRequest(InternalTable table, CatalogTableIdentifier catalogTableIdentifier) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+  public TableInput getCreateTableRequest(
+      InternalTable table, CatalogTableIdentifier catalogTableIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     final Instant now = Instant.now();
     List<String> partitionFields =
         table.getPartitioningFields().stream()
@@ -99,7 +122,8 @@ public class HudiGlueCatalogTableBuilder implements CatalogTableBuilder<TableInp
   @Override
   public TableInput getUpdateTableRequest(
       InternalTable table, Table glueTable, CatalogTableIdentifier catalogTableIdentifier) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     List<String> partitionFields =
         table.getPartitioningFields().stream()
             .map(field -> field.getSourceField().getName())

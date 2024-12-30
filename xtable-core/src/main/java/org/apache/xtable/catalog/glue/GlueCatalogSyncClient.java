@@ -72,8 +72,12 @@ public class GlueCatalogSyncClient implements CatalogSyncClient<Table> {
     this.glueCatalogConfig = GlueCatalogConfig.of(catalogConfig.getCatalogProperties());
     this.glueClient = new DefaultGlueClientFactory(glueCatalogConfig).getGlueClient();
     this.configuration = new Configuration(configuration);
-    this.tableBuilder = GlueCatalogTableBuilderFactory.getInstance(tableFormat, this.configuration);
-    this.partitionSyncTool = GluePartitionSyncToolFactory.getPartitionSyncTool(tableFormat, glueCatalogConfig, glueClient, configuration);
+    this.tableBuilder =
+        GlueCatalogTableBuilderFactory.getInstance(
+            tableFormat, glueCatalogConfig, this.configuration);
+    this.partitionSyncTool =
+        GluePartitionSyncToolFactory.getPartitionSyncTool(
+            tableFormat, glueCatalogConfig, glueClient, configuration);
   }
 
   @VisibleForTesting

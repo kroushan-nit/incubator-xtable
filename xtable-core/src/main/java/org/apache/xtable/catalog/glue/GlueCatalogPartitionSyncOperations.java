@@ -37,6 +37,7 @@ import org.apache.xtable.catalog.Partition;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
+
 import software.amazon.awssdk.services.glue.GlueClient;
 import software.amazon.awssdk.services.glue.model.BatchCreatePartitionRequest;
 import software.amazon.awssdk.services.glue.model.BatchCreatePartitionResponse;
@@ -57,8 +58,6 @@ import software.amazon.awssdk.services.glue.model.Table;
 import software.amazon.awssdk.services.glue.model.TableInput;
 import software.amazon.awssdk.services.glue.model.UpdateTableRequest;
 
-
-
 @Log4j2
 public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncOperations {
 
@@ -73,7 +72,8 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
 
   @Override
   public List<Partition> getAllPartitions(CatalogTableIdentifier catalogTableIdentifier) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       List<Partition> partitions = new ArrayList<>();
       String nextToken = null;
@@ -82,7 +82,7 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
             glueClient.getPartitions(
                 GetPartitionsRequest.builder()
                     .databaseName(tableIdentifier.getDatabaseName())
-                    .tableName(tableIdentifier.getDatabaseName())
+                    .tableName(tableIdentifier.getTableName())
                     .nextToken(nextToken)
                     .build());
         partitions.addAll(
@@ -99,7 +99,8 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
   }
 
   private Table getTable(CatalogTableIdentifier catalogTableIdentifier) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     try {
       GetTableResponse response =
           glueClient.getTable(
@@ -117,7 +118,8 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
   @Override
   public void addPartitionsToTable(
       CatalogTableIdentifier catalogTableIdentifier, List<Partition> partitionsToAdd) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     if (partitionsToAdd.isEmpty()) {
       log.info("No partitions to add for " + tableIdentifier);
       return;
@@ -176,7 +178,8 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
   @Override
   public void updatePartitionsToTable(
       CatalogTableIdentifier catalogTableIdentifier, List<Partition> changedPartitions) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     if (changedPartitions.isEmpty()) {
       log.info("No partitions to change for " + tableIdentifier.getTableName());
       return;
@@ -231,8 +234,10 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
   }
 
   @Override
-  public void dropPartitions(CatalogTableIdentifier catalogTableIdentifier, List<Partition> partitionsToDrop) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+  public void dropPartitions(
+      CatalogTableIdentifier catalogTableIdentifier, List<Partition> partitionsToDrop) {
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     if (isNullOrEmpty(partitionsToDrop)) {
       log.info("No partitions to drop for " + tableIdentifier);
       return;
@@ -292,7 +297,8 @@ public class GlueCatalogPartitionSyncOperations implements CatalogPartitionSyncO
   @Override
   public void updateTableProperties(
       CatalogTableIdentifier catalogTableIdentifier, Map<String, String> propertiesToUpdate) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     if (isNullOrEmpty(propertiesToUpdate)) {
       return;
     }

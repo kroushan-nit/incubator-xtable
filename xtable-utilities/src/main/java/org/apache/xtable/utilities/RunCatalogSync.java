@@ -63,6 +63,7 @@ import org.apache.xtable.hudi.HudiSourceConfig;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;
 import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
+import org.apache.xtable.model.storage.TableFormat;
 import org.apache.xtable.model.sync.SyncMode;
 import org.apache.xtable.reflection.ReflectionUtils;
 import org.apache.xtable.spi.extractor.CatalogConversionSource;
@@ -180,7 +181,9 @@ public class RunCatalogSync {
         TargetTable targetTable =
             TargetTable.builder()
                 .name(sourceTable.getName())
-                .basePath(sourceTable.getBasePath())
+                .basePath(
+                    getTargetTableBasePath(
+                        targetCatalogTableIdentifier.getTableFormat(), sourceTable))
                 .namespace(sourceTable.getNamespace())
                 .formatName(targetCatalogTableIdentifier.getTableFormat())
                 .additionalProperties(sourceTable.getAdditionalProperties())
@@ -244,6 +247,15 @@ public class RunCatalogSync {
       CONVERSION_SOURCE_PROVIDERS.put(tableFormat, conversionSourceProvider);
     }
     return CONVERSION_SOURCE_PROVIDERS;
+  }
+
+  static String getTargetTableBasePath(String targetTableFormat, SourceTable sourceTable) {
+    if (sourceTable.getFormatName().equals(TableFormat.ICEBERG)) {
+      return targetTableFormat.equals(TableFormat.HUDI)
+          ? sourceTable.getDataPath()
+          : sourceTable.getBasePath();
+    }
+    return sourceTable.getBasePath();
   }
 
   /**
