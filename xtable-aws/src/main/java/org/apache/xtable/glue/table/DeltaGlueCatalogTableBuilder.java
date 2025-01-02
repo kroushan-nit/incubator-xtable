@@ -16,7 +16,7 @@
  * limitations under the License.
  */
  
-package org.apache.xtable.catalog.glue.table;
+package org.apache.xtable.glue.table;
 
 import static org.apache.iceberg.BaseMetastoreTableOperations.TABLE_TYPE_PROP;
 import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
@@ -24,9 +24,9 @@ import static org.apache.xtable.catalog.Constants.PROP_EXTERNAL;
 import static org.apache.xtable.catalog.Constants.PROP_PATH;
 import static org.apache.xtable.catalog.Constants.PROP_SERIALIZATION_FORMAT;
 import static org.apache.xtable.catalog.Constants.PROP_SPARK_SQL_SOURCES_PROVIDER;
-import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
-import static org.apache.xtable.catalog.glue.GlueCatalogTableBuilderFactory.getNonPartitionColumns;
-import static org.apache.xtable.catalog.glue.GlueCatalogTableBuilderFactory.getPartitionColumns;
+import static org.apache.xtable.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
+import static org.apache.xtable.glue.GlueCatalogTableBuilderFactory.getNonPartitionColumns;
+import static org.apache.xtable.glue.GlueCatalogTableBuilderFactory.getPartitionColumns;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
 import com.google.common.annotations.VisibleForTesting;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
-import org.apache.xtable.catalog.glue.GlueSchemaExtractor;
+import org.apache.xtable.glue.GlueSchemaExtractor;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.catalog.HierarchicalTableIdentifier;

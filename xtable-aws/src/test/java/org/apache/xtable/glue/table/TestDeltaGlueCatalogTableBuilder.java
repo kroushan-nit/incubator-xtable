@@ -16,9 +16,9 @@
  * limitations under the License.
  */
  
-package org.apache.xtable.catalog.glue.table;
+package org.apache.xtable.glue.table;
 
-import static org.apache.xtable.catalog.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
+import static org.apache.xtable.glue.GlueCatalogSyncClient.GLUE_EXTERNAL_TABLE_TYPE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.apache.xtable.catalog.glue.GlueCatalogSyncTestBase;
+import org.apache.xtable.glue.GlueCatalogSyncTestBase;
 import org.apache.xtable.model.storage.TableFormat;
 
 import software.amazon.awssdk.services.glue.model.SerDeInfo;
