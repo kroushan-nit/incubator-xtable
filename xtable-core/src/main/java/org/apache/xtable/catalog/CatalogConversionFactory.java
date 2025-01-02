@@ -78,8 +78,8 @@ public class CatalogConversionFactory {
     return ReflectionUtils.createInstanceOfClass(
         targetCatalogConfig.getCatalogSyncClientImpl(),
         targetCatalogConfig,
-        configuration,
-        tableFormat);
+        tableFormat,
+        configuration);
   }
 
   private static <T> T findInstance(
