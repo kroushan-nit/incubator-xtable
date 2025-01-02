@@ -28,16 +28,16 @@ import org.apache.hadoop.hive.metastore.IMetaStoreClient;
 import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
 import org.apache.hadoop.hive.metastore.api.Table;
-import org.apache.xtable.avro.AvroSchemaConverter;
-import org.apache.xtable.model.schema.InternalField;
-import org.apache.xtable.model.schema.InternalPartitionField;
-import org.apache.xtable.model.schema.InternalType;
 import org.mockito.Mock;
 
+import org.apache.xtable.avro.AvroSchemaConverter;
 import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
+import org.apache.xtable.model.schema.InternalField;
+import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.schema.InternalSchema;
+import org.apache.xtable.model.schema.InternalType;
 import org.apache.xtable.model.storage.CatalogType;
 import org.apache.xtable.model.storage.TableFormat;
 
@@ -67,14 +67,16 @@ public class HMSCatalogSyncTestBase {
       InternalTable.builder()
           .basePath(TEST_BASE_PATH)
           .readSchema(
-              AvroSchemaConverter.getInstance().toInternalSchema(new Schema.Parser().parse(avroSchema)))
+              AvroSchemaConverter.getInstance()
+                  .toInternalSchema(new Schema.Parser().parse(avroSchema)))
           .partitioningFields(
               Collections.singletonList(
                   InternalPartitionField.builder()
                       .sourceField(
                           InternalField.builder()
                               .name("partitionKey")
-                              .schema(InternalSchema.builder().dataType(InternalType.STRING).build())
+                              .schema(
+                                  InternalSchema.builder().dataType(InternalType.STRING).build())
                               .build())
                       .build()))
           .build();
@@ -91,7 +93,8 @@ public class HMSCatalogSyncTestBase {
                       .sourceField(
                           InternalField.builder()
                               .name("partitionKey")
-                              .schema(InternalSchema.builder().dataType(InternalType.STRING).build())
+                              .schema(
+                                  InternalSchema.builder().dataType(InternalType.STRING).build())
                               .build())
                       .build()))
           .build();

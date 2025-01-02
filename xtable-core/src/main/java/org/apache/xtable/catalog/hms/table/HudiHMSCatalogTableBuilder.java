@@ -103,8 +103,10 @@ public class HudiHMSCatalogTableBuilder implements CatalogTableBuilder<Table, Ta
   }
 
   @Override
-  public Table getCreateTableRequest(InternalTable table, CatalogTableIdentifier catalogTableIdentifier) {
-    HierarchicalTableIdentifier tableIdentifier = castToHierarchicalTableIdentifier(catalogTableIdentifier);
+  public Table getCreateTableRequest(
+      InternalTable table, CatalogTableIdentifier catalogTableIdentifier) {
+    HierarchicalTableIdentifier tableIdentifier =
+        castToHierarchicalTableIdentifier(catalogTableIdentifier);
     Table newTb = new Table();
     newTb.setDbName(tableIdentifier.getDatabaseName());
     newTb.setTableName(tableIdentifier.getTableName());

@@ -59,9 +59,7 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
   private final Optional<PartitionSyncTool> partitionSyncTool;
 
   public HMSCatalogSyncClient(
-      ExternalCatalogConfig catalogConfig,
-      Configuration configuration,
-      String tableFormat) {
+      ExternalCatalogConfig catalogConfig, Configuration configuration, String tableFormat) {
     this.catalogConfig = catalogConfig;
     this.hmsCatalogConfig = HMSCatalogConfig.of(catalogConfig.getCatalogProperties());
     this.configuration = configuration;
@@ -71,8 +69,11 @@ public class HMSCatalogSyncClient implements CatalogSyncClient<Table> {
       throw new CatalogSyncException("HiveMetastoreClient could not be created", e);
     }
     this.tableBuilder =
-        HMSCatalogTableBuilderFactory.getTableBuilder(tableFormat, hmsCatalogConfig, this.configuration);
-    this.partitionSyncTool = HMSPartitionSyncToolFactory.getPartitionSyncTool(tableFormat, hmsCatalogConfig, metaStoreClient, configuration);
+        HMSCatalogTableBuilderFactory.getTableBuilder(
+            tableFormat, hmsCatalogConfig, this.configuration);
+    this.partitionSyncTool =
+        HMSPartitionSyncToolFactory.getPartitionSyncTool(
+            tableFormat, hmsCatalogConfig, metaStoreClient, configuration);
   }
 
   @VisibleForTesting

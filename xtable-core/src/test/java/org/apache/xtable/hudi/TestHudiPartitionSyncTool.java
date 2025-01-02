@@ -47,7 +47,6 @@ import lombok.SneakyThrows;
 import org.apache.avro.Schema;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -56,8 +55,6 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.apache.hudi.common.fs.FSUtils;
-import org.apache.hudi.common.model.HoodieFileFormat;
-import org.apache.hudi.common.table.HoodieTableConfig;
 import org.apache.hudi.common.table.HoodieTableMetaClient;
 import org.apache.hudi.common.table.timeline.HoodieActiveTimeline;
 import org.apache.hudi.common.table.timeline.HoodieInstant;
@@ -69,7 +66,7 @@ import org.apache.xtable.avro.AvroSchemaConverter;
 import org.apache.xtable.catalog.CatalogPartitionSyncOperations;
 import org.apache.xtable.catalog.Partition;
 import org.apache.xtable.model.InternalTable;
-import org.apache.xtable.model.catalog.CatalogTableIdentifier;
+import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 import org.apache.xtable.model.schema.InternalField;
 import org.apache.xtable.model.schema.InternalPartitionField;
 import org.apache.xtable.model.schema.InternalSchema;
@@ -144,7 +141,8 @@ public class TestHudiPartitionSyncTool {
       mockFSUtils
           .when(() -> FSUtils.getPartitionPath(new Path(TEST_BASE_PATH), partitionKey2))
           .thenReturn(new Path(TEST_BASE_PATH + "/" + partitionKey2));
-      when(mockHudiTableManager.loadTableMetaClientIfExists(TEST_BASE_PATH)).thenReturn(Optional.of(mockMetaClient));
+      when(mockHudiTableManager.loadTableMetaClientIfExists(TEST_BASE_PATH))
+          .thenReturn(Optional.of(mockMetaClient));
       when(mockMetaClient.getBasePathV2()).thenReturn(new Path(TEST_BASE_PATH));
       when(mockPartitionValueExtractor.extractPartitionValuesInPath(partitionKey1))
           .thenReturn(Collections.singletonList(partitionKey1));
@@ -216,7 +214,8 @@ public class TestHudiPartitionSyncTool {
       mockFSUtils
           .when(() -> FSUtils.getPartitionPath(new Path(TEST_BASE_PATH), partitionKey3))
           .thenReturn(new Path(TEST_BASE_PATH + "/" + partitionKey3));
-      when(mockHudiTableManager.loadTableMetaClientIfExists(TEST_BASE_PATH)).thenReturn(Optional.of(mockMetaClient));
+      when(mockHudiTableManager.loadTableMetaClientIfExists(TEST_BASE_PATH))
+          .thenReturn(Optional.of(mockMetaClient));
       when(mockMetaClient.getBasePathV2()).thenReturn(new Path(TEST_BASE_PATH));
       when(mockPartitionValueExtractor.extractPartitionValuesInPath(partitionKey2))
           .thenReturn(Collections.singletonList(partitionKey2));
