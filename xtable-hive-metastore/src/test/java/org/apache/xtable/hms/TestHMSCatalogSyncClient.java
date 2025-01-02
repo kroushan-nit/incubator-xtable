@@ -36,6 +36,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
+import java.util.Optional;
 
 import lombok.SneakyThrows;
 
@@ -68,7 +69,8 @@ public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
         mockHMSCatalogConfig,
         testConfiguration,
         mockMetaStoreClient,
-        mockTableBuilder);
+        mockTableBuilder,
+        Optional.empty());
   }
 
   void setupCommonMocks() {
