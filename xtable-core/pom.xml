@@ -138,13 +138,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- AWS Glue dependencies -->
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>glue</artifactId>
-            <version>${aws.version}</version>
-        </dependency>
-
         <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
