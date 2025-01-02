@@ -169,10 +169,14 @@ public class RunCatalogSync {
         CatalogConversionSource catalogConversionSource =
             CatalogConversionFactory.createCatalogConversionSource(
                 datasetConfig.getSourceCatalog(), hadoopConf);
+        Map<String, String> tableProps = dataset.getSourceCatalogTableIdentifier().getTableProperties();
         sourceTable =
             catalogConversionSource.getSourceTable(
                 getCatalogTableIdentifier(
                     dataset.getSourceCatalogTableIdentifier().getTableIdentifier()));
+        if (tableProps != null && !tableProps.isEmpty()) {
+          sourceTable.getAdditionalProperties().putAll(tableProps);
+        }
       }
       List<TargetTable> targetTables = new ArrayList<>();
       Map<TargetTable, List<TargetCatalogConfig>> targetCatalogs = new HashMap<>();
@@ -320,6 +324,8 @@ public class RunCatalogSync {
        * not strictly registered in a catalog, as long as the format and location are known
        */
       StorageIdentifier storageIdentifier;
+
+      Map<String, String> tableProperties;
     }
 
     @Data

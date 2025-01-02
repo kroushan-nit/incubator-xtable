@@ -23,11 +23,10 @@ import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIden
 import java.util.Locale;
 import java.util.Properties;
 
-import javax.security.auth.login.Configuration;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.xtable.catalog.TableFormatUtils;
 import org.apache.xtable.conversion.ExternalCatalogConfig;
 import org.apache.xtable.conversion.SourceTable;
