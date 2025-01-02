@@ -16,7 +16,7 @@
  * limitations under the License.
  */
  
-package org.apache.xtable.catalog.hms.table;
+package org.apache.xtable.hms.table;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mockStatic;
@@ -43,7 +43,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import org.apache.xtable.catalog.hms.HMSCatalogSyncClientTestBase;
+import org.apache.xtable.hms.HMSCatalogSyncClientTestBase;
 import org.apache.xtable.model.storage.TableFormat;
 
 @ExtendWith(MockitoExtension.class)

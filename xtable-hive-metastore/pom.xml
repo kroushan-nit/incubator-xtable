@@ -51,11 +51,18 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Iceberg dependencies  -->
+        <!-- Iceberg Hive dependencies  -->
         <dependency>
             <groupId>org.apache.iceberg</groupId>
             <artifactId>iceberg-hive-runtime</artifactId>
             <version>${iceberg.version}</version>
+        </dependency>
+
+        <!-- Delta Hive dependencies  -->
+        <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-hive_${scala.binary.version}</artifactId>
+            <version>${delta.hive.version}</version>
         </dependency>
 
         <!-- HMS dependencies -->

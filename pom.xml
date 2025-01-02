@@ -292,11 +292,6 @@
                 <artifactId>delta-standalone_${scala.binary.version}</artifactId>
                 <version>${delta.standalone.version}</version>
             </dependency>
-            <dependency>
-                <groupId>io.delta</groupId>
-                <artifactId>delta-hive_${scala.binary.version}</artifactId>
-                <version>${delta.hive.version}</version>
-            </dependency>
 
             <!-- Spark -->
             <dependency>

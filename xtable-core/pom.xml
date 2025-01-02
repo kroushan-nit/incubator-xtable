@@ -102,10 +102,6 @@
             <groupId>io.delta</groupId>
             <artifactId>delta-standalone_${scala.binary.version}</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.delta</groupId>
-            <artifactId>delta-hive_${scala.binary.version}</artifactId>
-        </dependency>
 
         <!-- Hadoop dependencies -->
         <dependency>
@@ -139,11 +135,6 @@
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-sql_${scala.binary.version}</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.iceberg</groupId>
-            <artifactId>iceberg-hive-runtime</artifactId>
-            <version>${iceberg.version}</version>
         </dependency>
 
         <!-- HMS dependencies -->

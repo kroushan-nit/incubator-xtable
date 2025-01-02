@@ -16,13 +16,13 @@
  * limitations under the License.
  */
  
-package org.apache.xtable.catalog.hms.table;
+package org.apache.xtable.hms.table;
 
 import static org.apache.iceberg.BaseMetastoreTableOperations.TABLE_TYPE_PROP;
 import static org.apache.xtable.catalog.Constants.PROP_EXTERNAL;
 import static org.apache.xtable.catalog.Constants.PROP_PATH;
 import static org.apache.xtable.catalog.Constants.PROP_SERIALIZATION_FORMAT;
-import static org.apache.xtable.catalog.hms.HMSCatalogTableBuilderFactory.newHmsTable;
+import static org.apache.xtable.hms.HMSCatalogTableBuilderFactory.newHmsTable;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -38,7 +38,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.delta.hive.DeltaStorageHandler;
 
 import org.apache.xtable.catalog.CatalogTableBuilder;
-import org.apache.xtable.catalog.hms.HMSSchemaExtractor;
+import org.apache.xtable.hms.HMSSchemaExtractor;
 import org.apache.xtable.model.InternalTable;
 import org.apache.xtable.model.catalog.CatalogTableIdentifier;
 import org.apache.xtable.model.storage.TableFormat;
