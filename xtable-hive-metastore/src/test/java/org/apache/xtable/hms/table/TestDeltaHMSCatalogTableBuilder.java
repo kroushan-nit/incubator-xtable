@@ -25,8 +25,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,15 +65,14 @@ public class TestDeltaHMSCatalogTableBuilder extends HMSCatalogSyncClientTestBas
             TableFormat.DELTA, TEST_DELTA_INTERNAL_TABLE.getReadSchema()))
         .thenReturn(Collections.emptyList());
 
-    ZonedDateTime zonedDateTime =
-        Instant.ofEpochMilli(System.currentTimeMillis()).atZone(ZoneId.systemDefault());
-    try (MockedStatic<ZonedDateTime> mockZonedDateTime = mockStatic(ZonedDateTime.class)) {
-      mockZonedDateTime.when(ZonedDateTime::now).thenReturn(zonedDateTime);
+    Instant createdTime = Instant.now();
+    try (MockedStatic<Instant> mockZonedDateTime = mockStatic(Instant.class)) {
+      mockZonedDateTime.when(Instant::now).thenReturn(createdTime);
       Table expected = new Table();
       expected.setDbName(TEST_HMS_DATABASE);
       expected.setTableName(TEST_HMS_TABLE);
       expected.setOwner(UserGroupInformation.getCurrentUser().getShortUserName());
-      expected.setCreateTime((int) zonedDateTime.toEpochSecond());
+      expected.setCreateTime((int) createdTime.getEpochSecond());
       expected.setSd(getTestStorageDescriptor());
       expected.setTableType("EXTERNAL_TABLE");
       expected.setParameters(getTestParameters());
