@@ -22,14 +22,12 @@ import static org.apache.xtable.hms.table.HudiHMSCatalogTableBuilder.HUDI_METADA
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.hadoop.hive.metastore.api.Table;
 import org.junit.jupiter.api.Test;
@@ -81,14 +79,18 @@ public class TestHudiHMSCatalogTableBuilder extends HMSCatalogSyncClientTestBase
 
     try (MockedStatic<HudiSparkDataSourceTableUtils> mockHudiSparkDataSourceTableUtils =
         mockStatic(HudiSparkDataSourceTableUtils.class)) {
+      List<String> partitionFields =
+          TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
+              .map(partitionField -> partitionField.getSourceField().getName())
+              .collect(Collectors.toList());
       mockHudiSparkDataSourceTableUtils
           .when(
               () ->
                   HudiSparkDataSourceTableUtils.getSparkTableProperties(
-                      anyList(),
-                      anyString(),
-                      anyInt(),
-                      eq(TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema())))
+                      partitionFields,
+                      "",
+                      mockHMSCatalogConfig.getSchemaLengthThreshold(),
+                      TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
           .thenReturn(new HashMap<>());
       Table table =
           mockHudiHMSCatalogTableBuilder.getCreateTableRequest(
@@ -110,14 +112,18 @@ public class TestHudiHMSCatalogTableBuilder extends HMSCatalogSyncClientTestBase
 
     try (MockedStatic<HudiSparkDataSourceTableUtils> mockHudiSparkDataSourceTableUtils =
         mockStatic(HudiSparkDataSourceTableUtils.class)) {
+      List<String> partitionFields =
+          TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
+              .map(partitionField -> partitionField.getSourceField().getName())
+              .collect(Collectors.toList());
       mockHudiSparkDataSourceTableUtils
           .when(
               () ->
                   HudiSparkDataSourceTableUtils.getSparkTableProperties(
-                      anyList(),
-                      anyString(),
-                      anyInt(),
-                      eq(TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema())))
+                      partitionFields,
+                      "",
+                      mockHMSCatalogConfig.getSchemaLengthThreshold(),
+                      TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
           .thenReturn(new HashMap<>());
       Table table =
           mockHudiHMSCatalogTableBuilder.getCreateTableRequest(
