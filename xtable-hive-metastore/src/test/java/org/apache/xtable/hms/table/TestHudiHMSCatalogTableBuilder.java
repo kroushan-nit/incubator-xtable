@@ -40,13 +40,13 @@ import org.apache.hudi.common.model.HoodieFileFormat;
 import org.apache.hudi.common.table.HoodieTableConfig;
 import org.apache.hudi.common.table.HoodieTableMetaClient;
 
-import org.apache.xtable.hms.HMSCatalogSyncClientTestBase;
+import org.apache.xtable.hms.HMSCatalogSyncTestBase;
 import org.apache.xtable.hms.HMSSchemaExtractor;
 import org.apache.xtable.hudi.HudiSparkDataSourceTableUtils;
 import org.apache.xtable.hudi.HudiTableManager;
 
 @ExtendWith(MockitoExtension.class)
-public class TestHudiHMSCatalogTableBuilder extends HMSCatalogSyncClientTestBase {
+public class TestHudiHMSCatalogTableBuilder extends HMSCatalogSyncTestBase {
 
   @Mock private HoodieTableMetaClient mockMetaClient;
   @Mock private HudiTableManager mockHudiTableManager;

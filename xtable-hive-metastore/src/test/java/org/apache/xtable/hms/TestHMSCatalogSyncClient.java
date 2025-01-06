@@ -58,7 +58,7 @@ import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.model.catalog.ThreePartHierarchicalTableIdentifier;
 
 @ExtendWith(MockitoExtension.class)
-public class TestHMSCatalogSyncClient extends HMSCatalogSyncClientTestBase {
+public class TestHMSCatalogSyncClient extends HMSCatalogSyncTestBase {
 
   @Mock private CatalogTableBuilder<Table, Table> mockTableBuilder;
   private HMSCatalogSyncClient hmsCatalogSyncClient;

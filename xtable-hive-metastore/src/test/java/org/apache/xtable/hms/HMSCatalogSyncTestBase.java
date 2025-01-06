@@ -41,7 +41,7 @@ import org.apache.xtable.model.schema.InternalType;
 import org.apache.xtable.model.storage.CatalogType;
 import org.apache.xtable.model.storage.TableFormat;
 
-public class HMSCatalogSyncClientTestBase {
+public class HMSCatalogSyncTestBase {
 
   @Mock protected IMetaStoreClient mockMetaStoreClient;
   @Mock protected HMSCatalogConfig mockHMSCatalogConfig;
