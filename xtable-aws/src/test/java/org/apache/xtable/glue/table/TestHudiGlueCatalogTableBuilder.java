@@ -18,6 +18,7 @@
  
 package org.apache.xtable.glue.table;
 
+import static org.apache.xtable.glue.table.HudiGlueCatalogTableBuilder.HUDI_METADATA_CONFIG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -84,14 +85,15 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
           TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
               .map(partitionField -> partitionField.getSourceField().getName())
               .collect(Collectors.toList());
-      mockHudiSparkDataSourceTableUtils.when(
-          () ->
-              HudiSparkDataSourceTableUtils.getSparkTableProperties(
-                  partitionFields,
-                  "",
-                  mockGlueCatalogConfig.getSchemaLengthThreshold(),
-                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
-          .thenReturn(new HashMap<>());;
+      mockHudiSparkDataSourceTableUtils
+          .when(
+              () ->
+                  HudiSparkDataSourceTableUtils.getSparkTableProperties(
+                      partitionFields,
+                      "",
+                      mockGlueCatalogConfig.getSchemaLengthThreshold(),
+                      TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
+          .thenReturn(new HashMap<>());
       TableInput table =
           mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
               TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_CATALOG_TABLE_IDENTIFIER);
@@ -99,7 +101,9 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
       assertEquals(2, table.storageDescriptor().columns().size());
       assertEquals(1, table.partitionKeys().size());
       assertNotNull(table.parameters());
+      assertNotNull(table.parameters());
       assertFalse(table.parameters().isEmpty());
+      assertEquals(table.parameters().get(HUDI_METADATA_CONFIG), "true");
     }
   }
 
@@ -114,13 +118,14 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
           TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
               .map(partitionField -> partitionField.getSourceField().getName())
               .collect(Collectors.toList());
-      mockHudiSparkDataSourceTableUtils.when(
-          () ->
-              HudiSparkDataSourceTableUtils.getSparkTableProperties(
-                  partitionFields,
-                  "",
-                  mockGlueCatalogConfig.getSchemaLengthThreshold(),
-                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
+      mockHudiSparkDataSourceTableUtils
+          .when(
+              () ->
+                  HudiSparkDataSourceTableUtils.getSparkTableProperties(
+                      partitionFields,
+                      "",
+                      mockGlueCatalogConfig.getSchemaLengthThreshold(),
+                      TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
           .thenReturn(new HashMap<>());
       TableInput tableInput =
           mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
@@ -139,7 +144,9 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
       assertEquals(3, updatedTable.storageDescriptor().columns().size());
       assertEquals(1, updatedTable.partitionKeys().size());
       assertNotNull(updatedTable.parameters());
+      assertNotNull(table.parameters());
       assertFalse(table.parameters().isEmpty());
+      assertEquals(table.parameters().get(HUDI_METADATA_CONFIG), "true");
     }
   }
 }

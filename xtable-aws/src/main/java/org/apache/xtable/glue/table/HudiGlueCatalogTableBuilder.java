@@ -59,6 +59,8 @@ import software.amazon.awssdk.services.glue.model.TableInput;
 
 public class HudiGlueCatalogTableBuilder implements CatalogTableBuilder<TableInput, Table> {
   protected static final String GLUE_EXTERNAL_TABLE_TYPE = "EXTERNAL_TABLE";
+  protected static final String HUDI_METADATA_CONFIG = "hudi.metadata-listing-enabled";
+
   private final GlueSchemaExtractor schemaExtractor;
   private final HudiTableManager hudiTableManager;
   private final GlueCatalogConfig glueCatalogConfig;
@@ -148,10 +150,13 @@ public class HudiGlueCatalogTableBuilder implements CatalogTableBuilder<TableInp
 
   @VisibleForTesting
   Map<String, String> getTableParameters(List<String> partitionFields, InternalSchema schema) {
+    Map<String, String> tableProperties = new HashMap<>();
+    tableProperties.put(HUDI_METADATA_CONFIG, "true");
     Map<String, String> sparkTableProperties =
         HudiSparkDataSourceTableUtils.getSparkTableProperties(
             partitionFields, "", glueCatalogConfig.getSchemaLengthThreshold(), schema);
-    return new HashMap<>(sparkTableProperties);
+    tableProperties.putAll(sparkTableProperties);
+    return tableProperties;
   }
 
   @VisibleForTesting
