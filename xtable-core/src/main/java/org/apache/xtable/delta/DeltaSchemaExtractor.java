@@ -55,7 +55,6 @@ import org.apache.xtable.schema.SchemaUtils;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DeltaSchemaExtractor {
   private static final String DELTA_COLUMN_MAPPING_ID = "delta.columnMapping.id";
-  private static final String COMMENT = "comment";
   private static final DeltaSchemaExtractor INSTANCE = new DeltaSchemaExtractor();
 
   public static DeltaSchemaExtractor getInstance() {

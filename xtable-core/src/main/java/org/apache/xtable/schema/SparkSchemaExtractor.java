@@ -15,12 +15,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.apache.xtable.schema;
 
 import org.apache.spark.sql.types.DataType;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.sql.types.Metadata;
+import org.apache.spark.sql.types.MetadataBuilder;
 import org.apache.spark.sql.types.StructField;
 import org.apache.spark.sql.types.StructType;
 
@@ -28,10 +29,12 @@ import org.apache.xtable.exception.NotSupportedException;
 import org.apache.xtable.exception.SchemaExtractorException;
 import org.apache.xtable.model.schema.InternalField;
 import org.apache.xtable.model.schema.InternalSchema;
+import org.apache.xtable.model.schema.InternalType;
 
 public class SparkSchemaExtractor {
 
   private static final SparkSchemaExtractor INSTANCE = new SparkSchemaExtractor();
+  private static final String COMMENT = "comment";
 
   public static SparkSchemaExtractor getInstance() {
     return INSTANCE;
@@ -46,7 +49,7 @@ public class SparkSchemaExtractor {
                         field.getName(),
                         convertFieldType(field),
                         field.getSchema().isNullable(),
-                        Metadata.empty()))
+                        getMetaData(field.getSchema())))
             .toArray(StructField[]::new);
     return new StructType(fields);
   }
@@ -63,6 +66,7 @@ public class SparkSchemaExtractor {
         return DataTypes.LongType;
       case BYTES:
       case FIXED:
+      case UUID:
         return DataTypes.BinaryType;
       case BOOLEAN:
         return DataTypes.BooleanType;
@@ -113,5 +117,17 @@ public class SparkSchemaExtractor {
       default:
         throw new NotSupportedException("Unsupported type: " + field.getSchema().getDataType());
     }
+  }
+
+  private Metadata getMetaData(InternalSchema schema) {
+    InternalType type = schema.getDataType();
+    MetadataBuilder metadataBuilder = new MetadataBuilder();
+    if (type == InternalType.UUID) {
+      metadataBuilder.putString(InternalSchema.XTABLE_LOGICAL_TYPE, "uuid");
+    }
+    if (schema.getComment() != null) {
+      metadataBuilder.putString(COMMENT, schema.getComment());
+    }
+    return metadataBuilder.build();
   }
 }
