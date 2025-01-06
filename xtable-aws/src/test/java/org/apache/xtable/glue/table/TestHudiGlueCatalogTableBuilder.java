@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,9 +80,6 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
 
     try (MockedStatic<HudiSparkDataSourceTableUtils> mockHudiSparkDataSourceTableUtils =
         mockStatic(HudiSparkDataSourceTableUtils.class)) {
-      TableInput table =
-          mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
-              TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_CATALOG_TABLE_IDENTIFIER);
       List<String> partitionFields =
           TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
               .map(partitionField -> partitionField.getSourceField().getName())
@@ -92,7 +90,11 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
                   partitionFields,
                   "",
                   mockGlueCatalogConfig.getSchemaLengthThreshold(),
-                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()));
+                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
+          .thenReturn(new HashMap<>());;
+      TableInput table =
+          mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
+              TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_CATALOG_TABLE_IDENTIFIER);
       assertEquals(TEST_CATALOG_TABLE_IDENTIFIER.getTableName(), table.name());
       assertEquals(2, table.storageDescriptor().columns().size());
       assertEquals(1, table.partitionKeys().size());
@@ -108,9 +110,6 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
 
     try (MockedStatic<HudiSparkDataSourceTableUtils> mockHudiSparkDataSourceTableUtils =
         mockStatic(HudiSparkDataSourceTableUtils.class)) {
-      TableInput tableInput =
-          mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
-              TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_CATALOG_TABLE_IDENTIFIER);
       List<String> partitionFields =
           TEST_INTERNAL_TABLE_WITH_SCHEMA.getPartitioningFields().stream()
               .map(partitionField -> partitionField.getSourceField().getName())
@@ -121,7 +120,11 @@ public class TestHudiGlueCatalogTableBuilder extends GlueCatalogSyncTestBase {
                   partitionFields,
                   "",
                   mockGlueCatalogConfig.getSchemaLengthThreshold(),
-                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()));
+                  TEST_INTERNAL_TABLE_WITH_SCHEMA.getReadSchema()))
+          .thenReturn(new HashMap<>());
+      TableInput tableInput =
+          mockHudiGlueCatalogTableBuilder.getCreateTableRequest(
+              TEST_INTERNAL_TABLE_WITH_SCHEMA, TEST_CATALOG_TABLE_IDENTIFIER);
       Table table =
           Table.builder()
               .name(tableInput.name())
