@@ -18,9 +18,6 @@
  
 package org.apache.xtable.hms.table;
 
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getInputFormatClassName;
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getOutputFormatClassName;
-import static org.apache.hudi.hadoop.utils.HoodieInputFormatUtils.getSerDeClassName;
 import static org.apache.xtable.catalog.CatalogUtils.castToHierarchicalTableIdentifier;
 
 import java.io.IOException;
@@ -50,6 +47,7 @@ import org.apache.xtable.catalog.CatalogTableBuilder;
 import org.apache.xtable.exception.CatalogSyncException;
 import org.apache.xtable.hms.HMSCatalogConfig;
 import org.apache.xtable.hms.HMSSchemaExtractor;
+import org.apache.xtable.hudi.HudiInputFormatUtils;
 import org.apache.xtable.hudi.HudiSparkDataSourceTableUtils;
 import org.apache.xtable.hudi.HudiTableManager;
 import org.apache.xtable.model.InternalTable;
@@ -168,9 +166,9 @@ public class HudiHMSCatalogTableBuilder implements CatalogTableBuilder<Table, Ta
     storageDescriptor.setLocation(table.getBasePath());
     HoodieFileFormat fileFormat =
         getMetaClient(table.getBasePath()).getTableConfig().getBaseFileFormat();
-    String inputFormatClassName = getInputFormatClassName(fileFormat, false);
-    String outputFormatClassName = getOutputFormatClassName(fileFormat);
-    String serdeClassName = getSerDeClassName(fileFormat);
+    String inputFormatClassName = HudiInputFormatUtils.getInputFormatClassName(fileFormat, false);
+    String outputFormatClassName = HudiInputFormatUtils.getOutputFormatClassName(fileFormat);
+    String serdeClassName = HudiInputFormatUtils.getSerDeClassName(fileFormat);
     storageDescriptor.setInputFormat(inputFormatClassName);
     storageDescriptor.setOutputFormat(outputFormatClassName);
     Map<String, String> serdeProperties = getSerdeProperties(false, table.getBasePath());
