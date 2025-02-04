@@ -72,6 +72,13 @@ public class GlueCatalogSyncTestBase {
           .tableFormat(TableFormat.HUDI)
           .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
           .build();
+  protected static final InternalTable TEST_DELTA_INTERNAL_TABLE =
+      InternalTable.builder()
+          .basePath(TEST_BASE_PATH)
+          .tableFormat(TableFormat.DELTA)
+          .readSchema(InternalSchema.builder().fields(Collections.emptyList()).build())
+          .partitioningFields(Collections.emptyList())
+          .build();
   protected static final ThreePartHierarchicalTableIdentifier TEST_CATALOG_TABLE_IDENTIFIER =
       new ThreePartHierarchicalTableIdentifier(TEST_GLUE_DATABASE, TEST_GLUE_TABLE);
   protected static final ExternalCatalogConfig catalogConfig =
