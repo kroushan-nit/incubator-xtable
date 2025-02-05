@@ -49,6 +49,13 @@
             <version>${iceberg.version}</version>
         </dependency>
 
+        <!-- Delta dependencies  -->
+        <dependency>
+            <groupId>io.delta</groupId>
+            <artifactId>delta-hive_${scala.binary.version}</artifactId>
+            <version>${delta.hive.version}</version>
+        </dependency>
+
         <!-- HMS dependencies -->
         <dependency>
             <groupId>org.apache.hive</groupId>
